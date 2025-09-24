@@ -2,39 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* ASL Kazakhstan Design System - Accessible, welcoming, educational
+All colors MUST be HSL for consistent theming.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Base colors - warm whites and soft backgrounds */
+    --background: 210 25% 98%;
+    --foreground: 215 25% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Cards and surfaces */
+    --card: 210 15% 99%;
+    --card-foreground: 215 25% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Popovers and overlays */
+    --popover: 210 15% 99%;
+    --popover-foreground: 215 25% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Calm sky blue for trust and accessibility */
+    --primary: 207 85% 48%;
+    --primary-foreground: 210 25% 98%;
+    --primary-soft: 207 65% 85%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Gentle green for growth and learning */
+    --secondary: 142 45% 58%;
+    --secondary-foreground: 210 25% 98%;
+    --secondary-soft: 142 35% 88%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted tones for subtle elements */
+    --muted: 210 15% 94%;
+    --muted-foreground: 215 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - Warm coral for highlights */
+    --accent: 25 85% 68%;
+    --accent-foreground: 210 25% 98%;
+    --accent-soft: 25 65% 92%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Status colors */
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 210 25% 98%;
+    --success: 142 65% 45%;
+    --success-foreground: 210 25% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Interactive elements */
+    --border: 210 20% 88%;
+    --input: 210 15% 96%;
+    --ring: 207 85% 48%;
+
+    /* Gradients for visual appeal */
+    --gradient-primary: linear-gradient(135deg, hsl(207 85% 48%), hsl(207 75% 58%));
+    --gradient-secondary: linear-gradient(135deg, hsl(142 45% 58%), hsl(142 55% 68%));
+    --gradient-hero: linear-gradient(135deg, hsl(207 85% 48%) 0%, hsl(142 45% 58%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(210 25% 98%) 0%, hsl(210 15% 96%) 100%);
+
+    /* Shadows for depth */
+    --shadow-soft: 0 2px 10px -2px hsl(207 85% 48% / 0.1);
+    --shadow-medium: 0 8px 30px -8px hsl(207 85% 48% / 0.15);
+    --shadow-large: 0 20px 60px -12px hsl(207 85% 48% / 0.2);
 
     --radius: 0.5rem;
 
@@ -101,5 +126,88 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Typography for accessibility */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+    line-height: 1.2;
+  }
+
+  p {
+    line-height: 1.6;
+  }
+}
+
+@layer components {
+  /* Hero section styles */
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  .card-gradient {
+    background: var(--gradient-soft);
+  }
+
+  /* Video container for responsive videos */
+  .video-container {
+    @apply relative w-full overflow-hidden rounded-lg;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  }
+
+  .video-container iframe,
+  .video-container video {
+    @apply absolute inset-0 h-full w-full;
+  }
+
+  /* Accessibility focus styles */
+  .focus-outline {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
+  /* Skip link for accessibility */
+  .skip-link {
+    @apply absolute left-4 top-4 z-50 rounded-md bg-primary px-4 py-2 text-primary-foreground;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+}
+
+@layer utilities {
+  /* Custom shadows using design tokens */
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .shadow-medium {
+    box-shadow: var(--shadow-medium);
+  }
+  
+  .shadow-large {
+    box-shadow: var(--shadow-large);
+  }
+
+  /* High contrast utilities for accessibility */
+  .text-high-contrast {
+    @apply text-foreground;
+    color: hsl(215 25% 10%);
+  }
+
+  .bg-primary-soft {
+    background-color: hsl(var(--primary-soft));
+  }
+
+  .bg-secondary-soft {
+    background-color: hsl(var(--secondary-soft));
+  }
+
+  .bg-accent-soft {
+    background-color: hsl(var(--accent-soft));
   }
 }
