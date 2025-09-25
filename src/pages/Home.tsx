@@ -4,43 +4,46 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Play, Users, Award, Heart, BookOpen, Video } from 'lucide-react';
 import heroImage from '@/assets/rsl-hero-image.jpg';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Home = () => {
+  const { t } = useLanguage();
+  
   const features = [
     {
       icon: Video,
-      title: 'Expert Video Lessons',
-      description: 'Learn from certified RSL instructors with high-quality video content and clear demonstrations.'
+      title: t('home.qualityInstruction'),
+      description: t('home.qualityDesc')
     },
     {
       icon: Users,
-      title: 'Supportive Community',
-      description: 'Join a welcoming community of learners and native signers who support each other\'s journey.'
+      title: t('home.supportiveCommunity'),
+      description: t('home.supportiveDesc')
     },
     {
       icon: Award,
-      title: 'Structured Learning Path',
-      description: 'Progress through carefully designed courses from basic signs to advanced conversation skills.'
+      title: t('home.accessibleDesign'),
+      description: t('home.accessibleDesc')
     }
   ];
 
   const testimonials = [
     {
-      name: 'Aida Nazarbayeva',
-      role: 'Student',
-      content: 'RSL Kazakhstan changed my life. The instructors are patient and the community is so welcoming. I can finally communicate with my deaf daughter.',
+      name: t('home.testimonial1Author'),
+      role: t('home.testimonial1Role'),
+      content: t('home.testimonial1'),
       avatar: '👩🏻'
     },
     {
-      name: 'Marat Sultanov',
-      role: 'Parent',
-      content: 'The video lessons are clear and easy to follow. My son loves learning sign language here, and the progress has been amazing.',
+      name: t('home.testimonial2Author'),
+      role: t('home.testimonial2Role'),
+      content: t('home.testimonial2'),
       avatar: '👨🏻'
     },
     {
-      name: 'Zarema Abdullayeva',
-      role: 'Teacher',
-      content: 'As an educator, I appreciate the structured approach and accessibility features. This platform truly serves the deaf community.',
+      name: t('home.testimonial3Author'),
+      role: t('home.testimonial3Role'),
+      content: t('home.testimonial3'),
       avatar: '👩🏻‍🏫'
     }
   ];
@@ -64,23 +67,21 @@ const Home = () => {
                   🇰🇿 Made in Kazakhstan
                 </Badge>
                 <h1 className="text-4xl lg:text-6xl font-bold text-high-contrast">
-                  Learn Sign Language
-                  <span className="block text-primary">with Heart</span>
+                  {t('home.heroTitle')}
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-lg leading-relaxed">
-                  Join RSL Kazakhstan and connect with the deaf and hard-of-hearing community. 
-                  Learn American Sign Language through expert instruction and inclusive education.
+                  {t('home.heroSubtitle')}
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="focus-outline shadow-medium hover:shadow-large transition-all">
                   <Play className="mr-2 h-5 w-5" />
-                  Start Learning Today
+                  {t('home.startLearning')}
                 </Button>
                 <Button variant="outline" size="lg" className="focus-outline">
                   <BookOpen className="mr-2 h-5 w-5" />
-                  View Course Catalog
+                  {t('home.exploreCourses')}
                 </Button>
               </div>
 
@@ -109,7 +110,7 @@ const Home = () => {
               <div className="absolute inset-0 flex items-center justify-center">
                 <Button size="lg" variant="secondary" className="shadow-large focus-outline">
                   <Play className="mr-2 h-6 w-6" />
-                  Watch Introduction
+                  {t('home.watchIntro')}
                 </Button>
               </div>
             </div>
@@ -122,7 +123,7 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-high-contrast mb-4">
-              Why Choose RSL Kazakhstan?
+              {t('home.whyChoose')}
             </h2>
             <p className="text-lg text-muted-foreground">
               We provide accessible, high-quality sign language education designed 
@@ -151,7 +152,7 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-high-contrast mb-4">
-              Stories from Our Community
+              {t('home.testimonialTitle')}
             </h2>
             <p className="text-lg text-muted-foreground">
               Hear from students, parents, and educators who have found their voice through sign language.
@@ -184,11 +185,10 @@ const Home = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary-foreground mb-6">
-              Ready to Start Your Sign Language Journey?
+              {t('home.readyToStart')}
             </h2>
             <p className="text-xl text-primary-foreground/90 mb-8 leading-relaxed">
-              Join hundreds of students learning sign language with RSL Kazakhstan. 
-              Start with our free introductory course today.
+              {t('home.joinCommunity')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="secondary" size="lg" className="focus-outline shadow-medium">
