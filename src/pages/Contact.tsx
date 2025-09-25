@@ -30,7 +30,7 @@ const Contact = () => {
     {
       icon: Mail,
       title: 'Email Us',
-      details: 'info@aslkazakhstan.kz',
+      details: 'info@rslkazakhstan.kz',
       description: 'Send us an email anytime - we respond within 24 hours'
     },
     {
@@ -54,10 +54,10 @@ const Contact = () => {
   ];
 
   const socialLinks = [
-    { name: 'Facebook', handle: '@ASLKazakhstan', url: '#' },
-    { name: 'Instagram', handle: '@aslkazakhstan', url: '#' },
-    { name: 'YouTube', handle: 'ASL Kazakhstan', url: '#' },
-    { name: 'Telegram', handle: '@ASLKazakhstanChat', url: '#' }
+    { name: 'Facebook', handle: '@RSLKazakhstan', url: '#' },
+    { name: 'Instagram', handle: '@rslkazakhstan', url: '#' },
+    { name: 'YouTube', handle: 'RSL Kazakhstan', url: '#' },
+    { name: 'Telegram', handle: '@RSLKazakhstanChat', url: '#' }
   ];
 
   const faqs = [
@@ -71,7 +71,7 @@ const Contact = () => {
     },
     {
       question: 'Do you offer courses in Kazakh Sign Language?',
-      answer: 'Currently, we focus on American Sign Language (ASL), but we incorporate cultural context relevant to Kazakhstan and Central Asia.'
+      answer: 'Currently, we focus on Russian Sign Language (RSL), but we incorporate cultural context relevant to Kazakhstan and Central Asia.'
     },
     {
       question: 'Can I get certificates for completed courses?',
@@ -237,7 +237,7 @@ const Contact = () => {
               Frequently Asked Questions
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Find quick answers to common questions about ASL Kazakhstan and our courses.
+              Find quick answers to common questions about RSL Kazakhstan and our courses.
             </p>
           </div>
 

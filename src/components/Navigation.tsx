@@ -1,19 +1,33 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Heart, User, BookOpen } from 'lucide-react';
+import { Menu, X, Heart, User, BookOpen, Globe } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage, Language } from '@/contexts/LanguageContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const navigationItems = [
-    { to: '/', label: 'Home', icon: Heart },
-    { to: '/courses', label: 'Courses', icon: BookOpen },
-    { to: '/about', label: 'About' },
-    { to: '/contact', label: 'Contact' },
+    { to: '/', label: t('nav.home'), icon: Heart },
+    { to: '/courses', label: t('nav.courses'), icon: BookOpen },
+    { to: '/about', label: t('nav.about') },
+    { to: '/contact', label: t('nav.contact') },
+  ];
+
+  const languages = [
+    { code: 'en' as Language, label: 'English', flag: '🇺🇸' },
+    { code: 'ru' as Language, label: 'Русский', flag: '🇷🇺' },
+    { code: 'kz' as Language, label: 'Қазақша', flag: '🇰🇿' },
   ];
 
   return (
@@ -22,9 +36,9 @@ const Navigation = () => {
       <a 
         href="#main-content" 
         className="skip-link focus-outline"
-        aria-label="Skip to main content"
+        aria-label={t('nav.skipToMain')}
       >
-        Skip to main content
+        {t('nav.skipToMain')}
       </a>
 
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -33,12 +47,12 @@ const Navigation = () => {
           <NavLink 
             to="/" 
             className="flex items-center space-x-2 focus-outline rounded-md"
-            aria-label="ASL Kazakhstan Home"
+            aria-label={t('nav.homeLabel')}
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <Heart className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-semibold text-foreground">ASL Kazakhstan</span>
+            <span className="text-lg font-semibold text-foreground">{t('brand.name')}</span>
           </NavLink>
 
           {/* Desktop Navigation */}
@@ -59,23 +73,68 @@ const Navigation = () => {
               </NavLink>
             ))}
             
+            {/* Language Switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="focus-outline">
+                  <Globe className="mr-2 h-4 w-4" />
+                  {languages.find(lang => lang.code === language)?.flag}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {languages.map((lang) => (
+                  <DropdownMenuItem 
+                    key={lang.code} 
+                    onClick={() => setLanguage(lang.code)}
+                    className={language === lang.code ? 'bg-primary-soft' : ''}
+                  >
+                    <span className="mr-2">{lang.flag}</span>
+                    {lang.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             <Button variant="default" size="sm" className="focus-outline">
               <User className="mr-2 h-4 w-4" />
-              Sign In
+              {t('nav.signIn')}
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden focus-outline"
-            onClick={toggleMenu}
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={isMenuOpen}
-          >
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          <div className="md:hidden flex items-center space-x-2">
+            {/* Mobile Language Switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="focus-outline">
+                  {languages.find(lang => lang.code === language)?.flag}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {languages.map((lang) => (
+                  <DropdownMenuItem 
+                    key={lang.code} 
+                    onClick={() => setLanguage(lang.code)}
+                    className={language === lang.code ? 'bg-primary-soft' : ''}
+                  >
+                    <span className="mr-2">{lang.flag}</span>
+                    {lang.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="focus-outline"
+              onClick={toggleMenu}
+              aria-label={isMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
+              aria-expanded={isMenuOpen}
+            >
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
         </nav>
 
         {/* Mobile Navigation */}
@@ -100,7 +159,7 @@ const Navigation = () => {
               ))}
               <Button variant="default" className="w-full mt-4 focus-outline">
                 <User className="mr-2 h-4 w-4" />
-                Sign In
+                {t('nav.signIn')}
               </Button>
             </div>
           </div>

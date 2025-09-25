@@ -14,7 +14,7 @@ const Courses = () => {
       courses: [
         {
           id: 1,
-          title: 'ASL Alphabet & Numbers',
+          title: 'RSL Alphabet & Numbers',
           description: 'Master the fundamentals with letters A-Z and numbers 0-100',
           duration: '2 hours',
           lessons: 8,
@@ -82,7 +82,7 @@ const Courses = () => {
       courses: [
         {
           id: 6,
-          title: 'Professional & Business ASL',
+          title: 'Professional & Business RSL',
           description: 'Navigate workplace communication and professional settings',
           duration: '5 hours',
           lessons: 18,

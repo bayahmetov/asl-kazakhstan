@@ -18,10 +18,10 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { name: 'Facebook', url: '#', handle: '@ASLKazakhstan' },
-    { name: 'Instagram', url: '#', handle: '@aslkazakhstan' },
-    { name: 'YouTube', url: '#', handle: 'ASL Kazakhstan' },
-    { name: 'Telegram', url: '#', handle: '@ASLKazakhstanChat' }
+    { name: 'Facebook', url: '#', handle: '@RSLKazakhstan' },
+    { name: 'Instagram', url: '#', handle: '@rslkazakhstan' },
+    { name: 'YouTube', url: '#', handle: 'RSL Kazakhstan' },
+    { name: 'Telegram', url: '#', handle: '@RSLKazakhstanChat' }
   ];
 
   return (
@@ -35,7 +35,7 @@ const Footer = () => {
                 <Heart className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-high-contrast">ASL Kazakhstan</h3>
+                <h3 className="text-xl font-semibold text-high-contrast">RSL Kazakhstan</h3>
                 <p className="text-sm text-muted-foreground">Learn with Heart</p>
               </div>
             </div>
@@ -49,7 +49,7 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>info@aslkazakhstan.kz</span>
+                <span>info@rslkazakhstan.kz</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4 text-primary flex-shrink-0" />
@@ -115,7 +115,7 @@ const Footer = () => {
 
             {/* Copyright */}
             <div className="text-sm text-muted-foreground">
-              © 2024 ASL Kazakhstan. All rights reserved. Made with ❤️ for the deaf community.
+              © 2024 RSL Kazakhstan. All rights reserved. Made with ❤️ for the deaf community.
             </div>
           </div>
         </div>

@@ -8,16 +8,16 @@ const About = () => {
     {
       name: 'Aida Zhakenova',
       role: 'Founder & Lead Instructor',
-      bio: 'Certified ASL interpreter with 15+ years experience. Passionate about making sign language accessible to all.',
+      bio: 'Certified RSL interpreter with 15+ years experience. Passionate about making sign language accessible to all.',
       avatar: '👩🏻‍🏫',
-      credentials: ['Certified ASL Interpreter', 'M.Ed. Special Education']
+      credentials: ['Certified RSL Interpreter', 'M.Ed. Special Education']
     },
     {
       name: 'Marat Bekzhanov',
-      role: 'Senior ASL Instructor',
+      role: 'Senior RSL Instructor',
       bio: 'Deaf community advocate and native signer. Specializes in cultural education and advanced conversation.',
       avatar: '👨🏻‍🏫',
-      credentials: ['Native ASL Speaker', 'Community Advocate']
+      credentials: ['Native RSL Speaker', 'Community Advocate']
     },
     {
       name: 'Samal Nurgazina',
@@ -47,7 +47,7 @@ const About = () => {
     {
       icon: Globe,
       title: 'Cultural Awareness',
-      description: 'Honoring deaf culture while adapting ASL education for the Kazakhstani context.'
+      description: 'Honoring deaf culture while adapting RSL education for the Kazakhstani context.'
     }
   ];
 
@@ -64,10 +64,10 @@ const About = () => {
         {/* Header */}
         <div className="text-center max-w-4xl mx-auto mb-16">
           <h1 className="text-4xl lg:text-5xl font-bold text-high-contrast mb-6">
-            About ASL Kazakhstan
+            About RSL Kazakhstan
           </h1>
           <p className="text-xl text-muted-foreground leading-relaxed">
-            Founded in 2021, ASL Kazakhstan is the first comprehensive sign language education platform 
+            Founded in 2021, RSL Kazakhstan is the first comprehensive sign language education platform 
             designed specifically for the deaf and hard-of-hearing community in Kazakhstan.
           </p>
         </div>
@@ -96,7 +96,7 @@ const About = () => {
               Our Values
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              These core principles guide everything we do at ASL Kazakhstan.
+              These core principles guide everything we do at RSL Kazakhstan.
             </p>
           </div>
 
@@ -182,7 +182,7 @@ const About = () => {
               </h2>
               <div className="prose max-w-none text-muted-foreground leading-relaxed space-y-6">
                 <p>
-                  ASL Kazakhstan was born from a simple yet powerful realization: the deaf and hard-of-hearing 
+                  RSL Kazakhstan was born from a simple yet powerful realization: the deaf and hard-of-hearing 
                   community in Kazakhstan needed accessible, high-quality sign language education that respected 
                   both American Sign Language traditions and local cultural context.
                 </p>
@@ -192,7 +192,7 @@ const About = () => {
                   settings were often inaccessible, expensive, or simply unavailable in many regions of Kazakhstan.
                 </p>
                 <p>
-                  In 2021, we launched ASL Kazakhstan as an online platform that could reach students across 
+                  In 2021, we launched RSL Kazakhstan as an online platform that could reach students across 
                   the country. Our approach combines expert instruction, cultural sensitivity, and cutting-edge 
                   accessibility features to create an inclusive learning environment.
                 </p>

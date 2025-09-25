@@ -3,14 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Play, Users, Award, Heart, BookOpen, Video } from 'lucide-react';
-import heroImage from '@/assets/asl-hero-image.jpg';
+import heroImage from '@/assets/rsl-hero-image.jpg';
 
 const Home = () => {
   const features = [
     {
       icon: Video,
       title: 'Expert Video Lessons',
-      description: 'Learn from certified ASL instructors with high-quality video content and clear demonstrations.'
+      description: 'Learn from certified RSL instructors with high-quality video content and clear demonstrations.'
     },
     {
       icon: Users,
@@ -28,7 +28,7 @@ const Home = () => {
     {
       name: 'Aida Nazarbayeva',
       role: 'Student',
-      content: 'ASL Kazakhstan changed my life. The instructors are patient and the community is so welcoming. I can finally communicate with my deaf daughter.',
+      content: 'RSL Kazakhstan changed my life. The instructors are patient and the community is so welcoming. I can finally communicate with my deaf daughter.',
       avatar: '👩🏻'
     },
     {
@@ -68,7 +68,7 @@ const Home = () => {
                   <span className="block text-primary">with Heart</span>
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-lg leading-relaxed">
-                  Join ASL Kazakhstan and connect with the deaf and hard-of-hearing community. 
+                  Join RSL Kazakhstan and connect with the deaf and hard-of-hearing community. 
                   Learn American Sign Language through expert instruction and inclusive education.
                 </p>
               </div>
@@ -122,7 +122,7 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-high-contrast mb-4">
-              Why Choose ASL Kazakhstan?
+              Why Choose RSL Kazakhstan?
             </h2>
             <p className="text-lg text-muted-foreground">
               We provide accessible, high-quality sign language education designed 
@@ -187,7 +187,7 @@ const Home = () => {
               Ready to Start Your Sign Language Journey?
             </h2>
             <p className="text-xl text-primary-foreground/90 mb-8 leading-relaxed">
-              Join hundreds of students learning sign language with ASL Kazakhstan. 
+              Join hundreds of students learning sign language with RSL Kazakhstan. 
               Start with our free introductory course today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
