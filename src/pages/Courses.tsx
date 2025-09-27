@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Play, Clock, Users, Star, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Courses = () => {
+  const navigate = useNavigate();
   const courseCategories = [
     {
       id: 'beginner',
@@ -145,7 +147,7 @@ const Courses = () => {
         </div>
         
         <div className="space-y-3">
-          <Button className="w-full focus-outline">
+          <Button className="w-full focus-outline" onClick={() => navigate(`/courses/${course.id}/lesson/1`)}>
             <Play className="mr-2 h-4 w-4" />
             Start Course
           </Button>
@@ -210,7 +212,7 @@ const Courses = () => {
                 and goals. Get personalized course recommendations.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="focus-outline">
+                <Button size="lg" className="focus-outline" onClick={() => navigate('/courses/1/lesson/1')}>
                   <Play className="mr-2 h-5 w-5" />
                   Take Skill Assessment
                 </Button>

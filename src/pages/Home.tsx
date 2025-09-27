@@ -5,9 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Play, Users, Award, Heart, BookOpen, Video } from 'lucide-react';
 import heroImage from '@/assets/rsl-hero-image.jpg';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   
   const features = [
     {
@@ -75,11 +77,11 @@ const Home = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="focus-outline shadow-medium hover:shadow-large transition-all">
+                <Button size="lg" className="focus-outline shadow-medium hover:shadow-large transition-all" onClick={() => navigate('/courses/1/lesson/1')}>
                   <Play className="mr-2 h-5 w-5" />
                   {t('home.startLearning')}
                 </Button>
-                <Button variant="outline" size="lg" className="focus-outline">
+                <Button variant="outline" size="lg" className="focus-outline" onClick={() => navigate('/courses')}>
                   <BookOpen className="mr-2 h-5 w-5" />
                   {t('home.exploreCourses')}
                 </Button>
@@ -108,7 +110,7 @@ const Home = () => {
               
               {/* Video placeholder overlay */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <Button size="lg" variant="secondary" className="shadow-large focus-outline">
+                <Button size="lg" variant="secondary" className="shadow-large focus-outline" onClick={() => navigate('/courses/1/lesson/1')}>
                   <Play className="mr-2 h-6 w-6" />
                   {t('home.watchIntro')}
                 </Button>
@@ -191,11 +193,11 @@ const Home = () => {
               {t('home.joinCommunity')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="secondary" size="lg" className="focus-outline shadow-medium">
+              <Button variant="secondary" size="lg" className="focus-outline shadow-medium" onClick={() => navigate('/courses')}>
                 <Heart className="mr-2 h-5 w-5" />
                 Join Our Community
               </Button>
-              <Button variant="outline" size="lg" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary focus-outline">
+              <Button variant="outline" size="lg" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary focus-outline" onClick={() => navigate('/courses/1/lesson/1')}>
                 <Play className="mr-2 h-5 w-5" />
                 Try Free Lesson
               </Button>
