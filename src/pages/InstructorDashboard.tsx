@@ -40,7 +40,13 @@ const translations = {
     save: 'Save',
     saving: 'Saving...',
     success: 'Feedback saved successfully',
-    error: 'Failed to save feedback'
+    error: 'Failed to save feedback',
+    reviewSuccess: 'Marked as reviewed',
+    unreviewSuccess: 'Marked as pending',
+    deleteError: 'Delete Error',
+    deleteSuccess: 'Submission deleted successfully',
+    feedbackPlaceholder: 'Add your feedback here...',
+    feedback: 'Feedback'
   },
   ru: {
     dashboard: 'Панель преподавателя',
@@ -60,7 +66,13 @@ const translations = {
     save: 'Сохранить',
     saving: 'Сохранение...',
     success: 'Отзыв успешно сохранен',
-    error: 'Не удалось сохранить отзыв'
+    error: 'Не удалось сохранить отзыв',
+    reviewSuccess: 'Отмечено как проверенное',
+    unreviewSuccess: 'Отмечено как ожидающее',
+    deleteError: 'Ошибка удаления',
+    deleteSuccess: 'Работа успешно удалена',
+    feedbackPlaceholder: 'Добавьте ваш отзыв здесь...',
+    feedback: 'Отзыв'
   },
   kz: {
     dashboard: 'Дәрісші панелі',
@@ -80,7 +92,13 @@ const translations = {
     save: 'Сақтау',
     saving: 'Сақталуда...',
     success: 'Пікір сәтті сақталды',
-    error: 'Пікірді сақтау сәтсіз аяқталды'
+    error: 'Пікірді сақтау сәтсіз аяқталды',
+    reviewSuccess: 'Тексерілді деп белгіленді',
+    unreviewSuccess: 'Күтуде деп белгіленді',
+    deleteError: 'Жою қатесі',
+    deleteSuccess: 'Жұмыс сәтті жойылды',
+    feedbackPlaceholder: 'Пікіріңізді мұнда жазыңыз...',
+    feedback: 'Пікір'
   }
 };
 
@@ -98,94 +116,136 @@ export default function InstructorDashboard() {
   const t = translations[language];
 
   useEffect(() => {
-    const fetchSubmissions = async () => {
-      if (!profile?.id || profile.role !== 'instructor') return;
-
-      try {
-        // Get submissions for courses taught by this instructor
-        const { data, error } = await supabase
-          .from('submissions')
-          .select(`
-            *,
-            lessons!inner(
-              title,
-              courses!inner(
-                title,
-                instructor_id
-              )
-            ),
-            profiles!inner(
-              full_name,
-              email
-            )
-          `)
-          .eq('lessons.courses.instructor_id', profile.id)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('Error fetching submissions:', error);
-          return;
-        }
-
-        setSubmissions(data || []);
-        
-        // Initialize comments state
-        const initialComments: { [key: string]: string } = {};
-        data?.forEach(submission => {
-          initialComments[submission.id] = submission.instructor_comment || '';
-        });
-        setComments(initialComments);
-      } catch (error) {
-        console.error('Error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSubmissions();
   }, [profile]);
 
   const updateSubmission = async (submissionId: string, reviewed: boolean) => {
     setUpdating(submissionId);
-
+    
     try {
+      const feedback = comments[submissionId] || '';
+      
+      const updateData = { 
+        reviewed,
+        feedback: feedback,
+        reviewed_at: reviewed ? new Date().toISOString() : null,
+      };
+      
       const { error } = await supabase
         .from('submissions')
-        .update({
-          reviewed,
-          instructor_comment: comments[submissionId] || null,
-          reviewed_at: reviewed ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', submissionId);
 
-      if (error) throw error;
-
-      // Update local state
-      setSubmissions(prev => prev.map(sub => 
-        sub.id === submissionId 
-          ? { 
-              ...sub, 
-              reviewed, 
-              instructor_comment: comments[submissionId] || null,
-              reviewed_at: reviewed ? new Date().toISOString() : null
-            }
-          : sub
-      ));
+      if (error) {
+        console.error('Error updating submission:', error);
+        toast({
+          title: t.error,
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: t.success,
-        variant: "default"
+        description: reviewed ? t.reviewSuccess || "Marked as reviewed" : t.unreviewSuccess || "Marked as pending",
       });
-    } catch (error: any) {
-      console.error('Error updating submission:', error);
+
+      // Refresh submissions
+      fetchSubmissions();
+    } catch (error) {
+      console.error('Error:', error);
       toast({
         title: t.error,
-        description: error.message,
-        variant: "destructive"
+        description: 'An unexpected error occurred',
+        variant: "destructive",
       });
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const deleteSubmission = async (submissionId: string, fileUrl?: string) => {
+    try {
+      // Delete file from storage if exists
+      if (fileUrl) {
+        await supabase.storage
+          .from('homework-files')
+          .remove([fileUrl]);
+      }
+
+      // Delete submission from database
+      const { error } = await supabase
+        .from('submissions')
+        .delete()
+        .eq('id', submissionId);
+
+      if (error) {
+        console.error('Delete error:', error);
+        toast({
+          title: t.deleteError || "Delete Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: t.success,
+        description: t.deleteSuccess || "Submission deleted successfully",
+      });
+
+      // Refresh submissions
+      fetchSubmissions();
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast({
+        title: t.deleteError || "Delete Error",
+        description: 'An unexpected error occurred',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchSubmissions = async () => {
+    if (!profile?.id || profile.role !== 'instructor') return;
+
+    try {
+      // Get submissions for courses taught by this instructor
+      const { data, error } = await supabase
+        .from('submissions')
+        .select(`
+          *,
+          lessons!inner(
+            title,
+            courses!inner(
+              title,
+              instructor_id
+            )
+          ),
+          profiles!inner(
+            full_name,
+            email
+          )
+        `)
+        .eq('lessons.courses.instructor_id', profile.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching submissions:', error);
+        return;
+      }
+
+      setSubmissions(data || []);
+      
+      // Initialize comments state
+      const initialComments: { [key: string]: string } = {};
+      data?.forEach(submission => {
+        initialComments[submission.id] = submission.feedback || '';
+      });
+      setComments(initialComments);
+    } catch (error) {
+      console.error('Error:', error);
     }
   };
 

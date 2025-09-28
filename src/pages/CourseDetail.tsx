@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { BookOpen, Clock, Users, Plus, Settings, Upload, Play } from 'lucide-react';
 import DeleteCourseDialog from '@/components/DeleteCourseDialog';
 import DeleteLessonDialog from '@/components/DeleteLessonDialog';
 import CourseProgress from '@/components/CourseProgress';
-import { Play, Upload, Plus, BookOpen, Users, Clock, Settings } from 'lucide-react';
+import CourseEnrollments from '@/components/CourseEnrollments';
 import { useToast } from '@/hooks/use-toast';
 
 const translations = {
@@ -287,11 +288,12 @@ export default function CourseDetail() {
 
         {/* Course Progress for Students */}
         {profile?.role === 'student' && (
-          <Card className="mb-8">
-            <CardContent className="p-6">
-              <CourseProgress courseId={course.id} totalLessons={lessons.length} />
-            </CardContent>
-          </Card>
+          <CourseProgress courseId={id!} totalLessons={lessons.length} />
+        )}
+
+        {/* Course Enrollments for Instructors */}
+        {profile?.role === 'instructor' && course?.instructor_id === profile?.id && (
+          <CourseEnrollments courseId={id!} />
         )}
 
         <Card>
@@ -346,7 +348,7 @@ export default function CourseDetail() {
                         )}
                       </div>
                     </div>
-                    {index < lessons.length - 1 && <Separator />}
+                    {index < lessons.length - 1 && <div className="border-t my-4" />}
                   </div>
                 ))}
               </div>

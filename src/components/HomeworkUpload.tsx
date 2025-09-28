@@ -26,11 +26,26 @@ const translations = {
     reviewed: 'Reviewed',
     pending: 'Pending Review',
     instructorComment: 'Instructor Comment',
+    instructorFeedback: 'Instructor Feedback',
     maxFileSize: 'Maximum file size: 10MB',
     supportedFormats: 'Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG',
-    success: 'Homework submitted successfully',
-    error: 'Failed to submit homework',
-    downloadFile: 'Download File'
+    success: 'Success',
+    error: 'Error',
+    uploadError: 'Upload Error',
+    submitError: 'Submit Error',
+    submitSuccess: 'Homework submitted successfully',
+    deleteError: 'Delete Error',
+    deleteSuccess: 'Submission deleted successfully',
+    downloadFile: 'Download File',
+    previousSubmission: 'Your Submission',
+    attachedFile: 'Attached File',
+    uploading: 'Uploading',
+    updateSubmission: 'Update Submission',
+    delete: 'Delete',
+    confirmDelete: 'Confirm Deletion',
+    deleteConfirmation: 'Are you sure you want to delete this submission? This action cannot be undone.',
+    cancel: 'Cancel',
+    reviewedOn: 'Reviewed on'
   },
   ru: {
     homework: 'Домашнее задание',
@@ -45,11 +60,26 @@ const translations = {
     reviewed: 'Проверено',
     pending: 'Ожидает проверки',
     instructorComment: 'Комментарий преподавателя',
+    instructorFeedback: 'Отзыв преподавателя',
     maxFileSize: 'Максимальный размер файла: 10МБ',
     supportedFormats: 'Поддерживаемые форматы: PDF, DOC, DOCX, TXT, JPG, PNG',
-    success: 'Домашнее задание успешно отправлено',
-    error: 'Не удалось отправить домашнее задание',
-    downloadFile: 'Скачать файл'
+    success: 'Успех',
+    error: 'Ошибка',
+    uploadError: 'Ошибка загрузки',
+    submitError: 'Ошибка отправки',
+    submitSuccess: 'Домашнее задание успешно отправлено',
+    deleteError: 'Ошибка удаления',
+    deleteSuccess: 'Работа успешно удалена',
+    downloadFile: 'Скачать файл',
+    previousSubmission: 'Ваша работа',
+    attachedFile: 'Прикрепленный файл',
+    uploading: 'Загрузка',
+    updateSubmission: 'Обновить работу',
+    delete: 'Удалить',
+    confirmDelete: 'Подтвердить удаление',
+    deleteConfirmation: 'Вы уверены, что хотите удалить эту работу? Это действие нельзя отменить.',
+    cancel: 'Отмена',
+    reviewedOn: 'Проверено'
   },
   kz: {
     homework: 'Үй тапсырмасы',
@@ -64,11 +94,26 @@ const translations = {
     reviewed: 'Тексерілді',
     pending: 'Тексеруді күтуде',
     instructorComment: 'Дәрісші пікірі',
+    instructorFeedback: 'Дәрісші пікірі',
     maxFileSize: 'Максималды файл өлшемі: 10МБ',
     supportedFormats: 'Қолдау көрсетілетін форматтар: PDF, DOC, DOCX, TXT, JPG, PNG',
-    success: 'Үй тапсырмасы сәтті жіберілді',
-    error: 'Үй тапсырмасын жіберу сәтсіз аяқталды',
-    downloadFile: 'Файлды жүктеп алу'
+    success: 'Сәтті',
+    error: 'Қате',
+    uploadError: 'Жүктеу қатесі',
+    submitError: 'Жіберу қатесі',
+    submitSuccess: 'Үй тапсырмасы сәтті жіберілді',
+    deleteError: 'Жою қатесі',
+    deleteSuccess: 'Жұмыс сәтті жойылды',
+    downloadFile: 'Файлды жүктеп алу',
+    previousSubmission: 'Сіздің жұмысыңыз',
+    attachedFile: 'Тіркелген файл',
+    uploading: 'Жүктелуде',
+    updateSubmission: 'Жұмысты жаңарту',
+    delete: 'Жою',
+    confirmDelete: 'Жоюды растау',
+    deleteConfirmation: 'Бұл жұмысты жойғыңыз келетініне сенімдісіз бе? Бұл әрекетті қайтаруға болмайды.',
+    cancel: 'Болдырмау',
+    reviewedOn: 'Тексерілген күні'
   }
 };
 
@@ -90,36 +135,38 @@ export default function HomeworkUpload({ lessonId }: HomeworkUploadProps) {
 
   const t = translations[language];
 
+  const [existingSubmission, setExistingSubmission] = useState<any>(null);
+
   useEffect(() => {
-    const fetchSubmission = async () => {
-      if (!profile?.id) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('submissions')
-          .select('*')
-          .eq('lesson_id', lessonId)
-          .eq('student_id', profile.id)
-          .maybeSingle();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching submission:', error);
-          return;
-        }
-
-        if (data) {
-          setSubmission(data);
-          setTextAnswer(data.text_answer || '');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSubmission();
   }, [lessonId, profile?.id]);
+
+  const fetchSubmission = async () => {
+    if (!profile?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('submissions')
+        .select('*')
+        .eq('lesson_id', lessonId)
+        .eq('student_id', profile.id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching submission:', error);
+        return;
+      }
+
+      if (data) {
+        setExistingSubmission(data);
+        setTextAnswer(data.text_answer || '');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -159,121 +206,159 @@ export default function HomeworkUpload({ lessonId }: HomeworkUploadProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!profile?.id || (!textAnswer.trim() && !file)) {
-      toast({
-        title: "Error",
-        description: "Please provide either a text answer or upload a file",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!textAnswer.trim() && !file) return;
 
     setSubmitting(true);
-    setUploadProgress(0);
-
+    
     try {
       let fileUrl = null;
-
-      // Upload file if provided
+      
+      // Upload file if present
       if (file) {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const fileName = `${Date.now()}.${fileExt}`;
         const filePath = `${lessonId}/${fileName}`;
-
-        // Simulate progress
-        const progressInterval = setInterval(() => {
-          setUploadProgress(prev => Math.min(prev + 10, 90));
-        }, 200);
 
         const { error: uploadError } = await supabase.storage
           .from('homework-files')
           .upload(filePath, file);
 
-        clearInterval(progressInterval);
-
         if (uploadError) {
-          throw uploadError;
-        }
-
-        fileUrl = filePath;
-        setUploadProgress(95);
-      }
-
-      // Create or update submission
-      const submissionData = {
-        lesson_id: lessonId,
-        student_id: profile.id,
-        text_answer: textAnswer.trim() || null,
-        file_url: fileUrl,
-        updated_at: new Date().toISOString()
-      };
-
-      if (submission) {
-        // Update existing submission (only if not reviewed)
-        if (submission.reviewed) {
+          console.error('File upload error:', uploadError);
           toast({
-            title: "Cannot update",
-            description: "This submission has already been reviewed",
-            variant: "destructive"
+            title: t.uploadError || "Upload Error",
+            description: uploadError.message,
+            variant: "destructive",
           });
           return;
         }
 
+        fileUrl = filePath;
+      }
+
+      // Insert or update submission
+      const submissionData = {
+        lesson_id: lessonId,
+        student_id: profile?.id,
+        text_answer: textAnswer.trim() || null,
+        file_url: fileUrl,
+      };
+
+      if (existingSubmission && !existingSubmission.reviewed) {
+        // Update existing submission
         const { error } = await supabase
           .from('submissions')
           .update(submissionData)
-          .eq('id', submission.id);
+          .eq('id', existingSubmission.id);
 
-        if (error) throw error;
-        setSubmission({ ...submission, ...submissionData });
+        if (error) {
+          console.error('Update error:', error);
+          toast({
+            title: t.submitError || "Submit Error",
+            description: error.message,
+            variant: "destructive",
+          });
+          return;
+        }
       } else {
         // Create new submission
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('submissions')
-          .insert(submissionData)
-          .select()
-          .single();
+          .insert([submissionData]);
 
-        if (error) throw error;
-        setSubmission(data);
+        if (error) {
+          console.error('Insert error:', error);
+          toast({
+            title: t.submitError || "Submit Error",
+            description: error.message,
+            variant: "destructive",
+          });
+          return;
+        }
       }
 
-      setUploadProgress(100);
-      
       toast({
         title: t.success,
-        variant: "default"
+        description: t.submitSuccess || "Homework submitted successfully",
       });
 
-      setTimeout(() => setUploadProgress(0), 2000);
-    } catch (error: any) {
-      console.error('Error submitting homework:', error);
-      toast({
-        title: t.error,
-        description: error.message,
-        variant: "destructive"
-      });
+      // Reset form
+      setTextAnswer('');
+      setFile(null);
       setUploadProgress(0);
+      
+      // Refetch submission
+      fetchSubmission();
+    } catch (error) {
+      console.error('Submission error:', error);
+      toast({
+        title: t.submitError || "Submit Error",
+        description: 'An unexpected error occurred',
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const downloadFile = async () => {
-    if (!submission?.file_url) return;
+  const handleDelete = async () => {
+    if (!existingSubmission) return;
 
+    try {
+      // Delete file from storage if exists
+      if (existingSubmission.file_url) {
+        await supabase.storage
+          .from('homework-files')
+          .remove([existingSubmission.file_url]);
+      }
+
+      // Delete submission from database
+      const { error } = await supabase
+        .from('submissions')
+        .delete()
+        .eq('id', existingSubmission.id);
+
+      if (error) {
+        console.error('Delete error:', error);
+        toast({
+          title: t.deleteError || "Delete Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: t.success,
+        description: t.deleteSuccess || "Submission deleted successfully",
+      });
+
+      // Reset state
+      setExistingSubmission(null);
+      setTextAnswer('');
+      setFile(null);
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast({
+        title: t.deleteError || "Delete Error",
+        description: 'An unexpected error occurred',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadFile = async (fileUrl: string, fileName: string) => {
     try {
       const { data, error } = await supabase.storage
         .from('homework-files')
-        .download(submission.file_url);
+        .download(fileUrl);
 
       if (error) throw error;
 
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = submission.file_url.split('/').pop() || 'homework-file';
+      a.download = fileName || fileUrl.split('/').pop() || 'homework-file';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -296,7 +381,7 @@ export default function HomeworkUpload({ lessonId }: HomeworkUploadProps) {
     return null;
   }
 
-  const canEdit = !submission || !submission.reviewed;
+  const canEdit = !existingSubmission || !existingSubmission.reviewed;
 
   return (
     <Card className="mt-6">
@@ -304,21 +389,67 @@ export default function HomeworkUpload({ lessonId }: HomeworkUploadProps) {
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
           {t.homework}
-          {submission && (
-            <Badge variant={submission.reviewed ? "default" : "secondary"}>
-              {submission.reviewed ? t.reviewed : t.pending}
+          {existingSubmission && (
+            <Badge variant={existingSubmission.reviewed ? "default" : "secondary"}>
+              {existingSubmission.reviewed ? t.reviewed : t.pending}
             </Badge>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {submission && submission.reviewed && submission.instructor_comment && (
+        {existingSubmission && existingSubmission.reviewed && existingSubmission.feedback && (
           <div className="mb-6 p-4 bg-muted rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <MessageSquare className="h-4 w-4" />
-              <span className="font-medium">{t.instructorComment}</span>
+              <span className="font-medium">{t.instructorFeedback || "Instructor Feedback"}</span>
             </div>
-            <p className="text-sm">{submission.instructor_comment}</p>
+            <p className="text-sm">{existingSubmission.feedback}</p>
+            {existingSubmission.reviewed_at && (
+              <p className="text-xs text-muted-foreground mt-2">
+                {t.reviewedOn || "Reviewed on"}: {new Date(existingSubmission.reviewed_at).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Display existing submission */}
+        {existingSubmission && (
+          <div className="mt-4 p-4 bg-secondary rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-medium">{t.previousSubmission || "Your Submission"}</h4>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {new Date(existingSubmission.created_at).toLocaleDateString()} {new Date(existingSubmission.created_at).toLocaleTimeString()}
+                </span>
+                <span className={`text-sm px-2 py-1 rounded ${
+                  existingSubmission.reviewed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {existingSubmission.reviewed ? t.reviewed : t.pending}
+                </span>
+              </div>
+            </div>
+            
+            {existingSubmission.text_answer && (
+              <div className="mb-2">
+                <p className="text-sm text-muted-foreground mb-1">{t.textAnswer}:</p>
+                <p className="text-sm bg-background p-2 rounded">{existingSubmission.text_answer}</p>
+              </div>
+            )}
+            
+            {existingSubmission.file_url && (
+              <div className="mb-2">
+                <p className="text-sm text-muted-foreground mb-1">{t.attachedFile || "Attached File"}:</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadFile(existingSubmission.file_url!, 'homework-file')}
+                  className="text-xs"
+                >
+                  <Download className="w-3 h-3 mr-1" />
+                  {t.downloadFile}
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -353,12 +484,12 @@ export default function HomeworkUpload({ lessonId }: HomeworkUploadProps) {
                 Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(1)}MB)
               </p>
             )}
-            {submission?.file_url && (
+            {existingSubmission?.file_url && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={downloadFile}
+                onClick={() => downloadFile(existingSubmission.file_url!, 'homework-file')}
                 className="mt-2"
               >
                 <Download className="h-4 w-4 mr-2" />
@@ -378,19 +509,45 @@ export default function HomeworkUpload({ lessonId }: HomeworkUploadProps) {
           )}
 
           {canEdit && (
-            <Button type="submit" disabled={submitting || (!textAnswer.trim() && !file)}>
-              {submitting ? (
-                <>
-                  <Clock className="w-4 h-4 mr-2 animate-spin" />
-                  {t.submitting}
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4 mr-2" />
-                  {t.submit}
-                </>
+            <div className="flex gap-2">
+              <Button 
+                type="submit" 
+                disabled={submitting || (!textAnswer.trim() && !file)}
+                className="flex-1"
+              >
+                {submitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {uploadProgress > 0 ? `${t.uploading || "Uploading"} ${uploadProgress}%` : t.submitting}
+                  </>
+                ) : (
+                  existingSubmission ? t.updateSubmission || "Update Submission" : t.submitHomework
+                )}
+              </Button>
+              {existingSubmission && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" type="button">
+                      {t.delete || "Delete"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t.confirmDelete || "Confirm Deletion"}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t.deleteConfirmation || "Are you sure you want to delete this submission? This action cannot be undone."}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t.cancel || "Cancel"}</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        {t.delete || "Delete"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
-            </Button>
+            </div>
           )}
         </form>
       </CardContent>
