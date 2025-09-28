@@ -24,24 +24,39 @@ const Courses = () => {
   const signOut = auth?.signOut || (() => {});
 
   const fetchCourses = async () => {
-    if (loading) return;
-    
     setLoading(true);
     try {
+      console.log('Fetching courses...');
+      const startTime = performance.now();
+      
       const { data, error } = await supabase
         .from('courses')
         .select('*')
         .order('created_at', { ascending: false });
 
+      const endTime = performance.now();
+      console.log(`Courses fetch took ${endTime - startTime} milliseconds`);
+
       if (error) {
         console.error('Error fetching courses:', error);
         setCourses([]);
+        toast({
+          title: "Error",
+          description: "Failed to load courses",
+          variant: "destructive"
+        });
       } else {
+        console.log('Courses loaded:', data?.length || 0);
         setCourses(data || []);
       }
     } catch (error) {
       console.error('Error fetching courses:', error);
       setCourses([]);
+      toast({
+        title: "Error", 
+        description: "Network error while loading courses",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -52,7 +67,19 @@ const Courses = () => {
   };
 
   useEffect(() => {
-    fetchCourses();
+    let mounted = true;
+    
+    const loadCourses = async () => {
+      if (mounted) {
+        await fetchCourses();
+      }
+    };
+    
+    loadCourses();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
 
