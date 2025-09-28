@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import LessonProgress from '@/components/LessonProgress';
+import HomeworkUpload from '@/components/HomeworkUpload';
+import MaterialsUpload from '@/components/MaterialsUpload';
+import { ArrowLeft, Play } from 'lucide-react';
 
 const VideoLesson = () => {
   const { courseId, lessonId } = useParams();
@@ -37,172 +42,105 @@ const VideoLesson = () => {
 
     fetchLesson();
   }, [lessonId]);
-  const { language } = useLanguage();
-  const [currentLessonIndex, setCurrentLessonIndex] = useState(parseInt(lessonId || '1') - 1);
 
-  // Mock lesson data - this would come from your backend/database
-  const lessons = [
-    {
-      id: 1,
-      title: {
-        en: 'Basic Greetings in RSL',
-        ru: 'Основные приветствия в РЖЯ',
-        kk: 'РҚТ негізгі сәлемдесулер'
-      },
-      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      description: {
-        en: 'Learn how to greet people using Russian Sign Language',
-        ru: 'Научитесь приветствовать людей на русском жестовом языке',
-        kk: 'Орыс ым-ишара тілінде адамдармен сәлемдесуді үйреніңіз'
-      }
-    },
-    {
-      id: 2,
-      title: {
-        en: 'Family Signs in RSL',
-        ru: 'Жесты семьи в РЖЯ',
-        kk: 'РҚТ отбасы белгілері'
-      },
-      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      description: {
-        en: 'Learn signs for family members',
-        ru: 'Изучите жесты для членов семьи',
-        kk: 'Отбасы мүшелеріне арналған белгілерді үйреніңіз'
-      }
-    },
-    {
-      id: 3,
-      title: {
-        en: 'Numbers 1-10 in RSL',
-        ru: 'Числа 1-10 в РЖЯ',
-        kk: 'РҚТ 1-10 сандары'
-      },
-      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      description: {
-        en: 'Learn to count from 1 to 10 in Russian Sign Language',
-        ru: 'Научитесь считать от 1 до 10 на русском жестовом языке',
-        kk: 'Орыс ым-ишара тілінде 1-ден 10-ға дейін санауды үйреніңіз'
-      }
-    }
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
-  const currentLesson = lessons[currentLessonIndex];
+  if (!lesson) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Lesson not found</h1>
+          <Button onClick={() => navigate(`/courses/${courseId}`)} variant="outline">
+            Back to Course
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-  const goToPreviousLesson = () => {
-    if (currentLessonIndex > 0) {
-      setCurrentLessonIndex(currentLessonIndex - 1);
-      navigate(`/courses/${courseId}/lesson/${currentLessonIndex}`);
-    }
+  const getVideoUrl = () => {
+    if (!lesson.storage_key) return null;
+    
+    const { data } = supabase.storage
+      .from('lesson-videos')
+      .getPublicUrl(lesson.storage_key);
+    
+    return data.publicUrl;
   };
 
-  const goToNextLesson = () => {
-    if (currentLessonIndex < lessons.length - 1) {
-      setCurrentLessonIndex(currentLessonIndex + 1);
-      navigate(`/courses/${courseId}/lesson/${currentLessonIndex + 2}`);
-    }
-  };
-
-  const translations = {
-    backToCourses: {
-      en: 'Back to Courses',
-      ru: 'Назад к курсам',
-      kk: 'Курстарға оралу'
-    },
-    lesson: {
-      en: 'Lesson',
-      ru: 'Урок',
-      kk: 'Сабақ'
-    },
-    previous: {
-      en: 'Previous',
-      ru: 'Предыдущий',
-      kk: 'Алдыңғы'
-    },
-    next: {
-      en: 'Next',
-      ru: 'Следующий',
-      kk: 'Келесі'
-    }
-  };
+  const videoUrl = getVideoUrl();
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="container mx-auto px-4">
-        {/* Back button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/courses')}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          {translations.backToCourses[language]}
-        </Button>
+    <div className="container mx-auto px-4 py-8">
+      <Button 
+        onClick={() => navigate(`/courses/${courseId}`)} 
+        variant="outline" 
+        className="mb-6"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Course
+      </Button>
 
-        {/* Lesson header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <span>{translations.lesson[language]} {currentLessonIndex + 1} / {lessons.length}</span>
-          </div>
-          <h1 className="text-3xl font-bold mb-4">
-            {currentLesson?.title[language]}
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            {currentLesson?.description[language]}
-          </p>
-        </div>
+      <div className="max-w-4xl mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Play className="h-5 w-5" />
+              {lesson.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="aspect-video bg-black rounded-lg mb-4 flex items-center justify-center">
+              {videoUrl ? (
+                <video 
+                  controls 
+                  className="w-full h-full rounded-lg"
+                  src={videoUrl}
+                >
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <div className="text-white text-center">
+                  <Play className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p>Video not available</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold mb-2">About this lesson</h3>
+                <p className="text-muted-foreground">{lesson.description || 'No description available'}</p>
+              </div>
+              
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>Duration: {lesson.duration ? `${Math.floor(lesson.duration / 60)}:${(lesson.duration % 60).toString().padStart(2, '0')}` : 'Unknown'}</span>
+                <span>Created: {new Date(lesson.created_at).toLocaleDateString()}</span>
+              </div>
 
-        {/* Video container */}
-        <div className="bg-card rounded-lg shadow-lg overflow-hidden mb-8">
-          <div className="aspect-video">
-            <iframe
-              src={currentLesson?.videoUrl}
-              title={currentLesson?.title[language]}
-              className="w-full h-full"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
+              {/* Lesson Progress Component */}
+              {lessonId && courseId && (
+                <LessonProgress lessonId={lessonId} courseId={courseId} />
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Navigation controls */}
-        <div className="flex justify-between items-center">
-          <Button
-            variant="outline"
-            onClick={goToPreviousLesson}
-            disabled={currentLessonIndex === 0}
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            {translations.previous[language]}
-          </Button>
+        {/* Homework Upload */}
+        {lessonId && (
+          <HomeworkUpload lessonId={lessonId} />
+        )}
 
-          <div className="flex gap-2">
-            {lessons.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setCurrentLessonIndex(index);
-                  navigate(`/courses/${courseId}/lesson/${index + 1}`);
-                }}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  index === currentLessonIndex 
-                    ? 'bg-primary' 
-                    : 'bg-muted hover:bg-muted-foreground'
-                }`}
-              />
-            ))}
-          </div>
-
-          <Button
-            onClick={goToNextLesson}
-            disabled={currentLessonIndex === lessons.length - 1}
-            className="flex items-center gap-2"
-          >
-            {translations.next[language]}
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+        {/* Materials Upload (for instructors) */}
+        {lessonId && courseId && (
+          <MaterialsUpload lessonId={lessonId} courseId={courseId} />
+        )}
       </div>
     </div>
   );

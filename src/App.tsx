@@ -17,6 +17,8 @@ import Profile from "./pages/Profile";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
+import InstructorDashboard from "./pages/InstructorDashboard";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +53,16 @@ const App = () => (
                 <Route path="/courses/:courseId/lesson/:lessonId" element={
                   <ProtectedRoute>
                     <VideoLesson />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/instructor-dashboard" element={
+                  <ProtectedRoute requireRole="instructor">
+                    <InstructorDashboard />
                   </ProtectedRoute>
                 } />
                 <Route path="/about" element={<About />} />

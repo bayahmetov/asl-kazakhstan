@@ -99,12 +99,12 @@ export default function CreateCourseDialog({ onCourseCreated }: CreateCourseDial
     try {
       const { error } = await supabase
         .from('courses')
-        .insert({
+        .insert([{
           title: title.trim(),
           description: description.trim(),
-          level: level,
+          level: level as 'beginner' | 'intermediate' | 'advanced',
           instructor_id: profile?.id
-        });
+        }]);
 
       if (error) throw error;
 
