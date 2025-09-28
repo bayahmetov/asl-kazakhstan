@@ -14,29 +14,152 @@ export type Database = {
   }
   public: {
     Tables: {
+      course_enrollments: {
+        Row: {
+          completed: boolean | null
+          completion_percentage: number | null
+          course_id: string | null
+          enrolled_at: string | null
+          id: string
+          student_id: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          completion_percentage?: number | null
+          course_id?: string | null
+          enrolled_at?: string | null
+          id?: string
+          student_id?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          completion_percentage?: number | null
+          course_id?: string | null
+          enrolled_at?: string | null
+          id?: string
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           created_at: string
           description: string | null
+          enrolled_students: number | null
           id: string
           instructor_id: string | null
+          level: Database["public"]["Enums"]["course_level"] | null
           title: string
         }
         Insert: {
           created_at?: string
           description?: string | null
+          enrolled_students?: number | null
           id?: string
           instructor_id?: string | null
+          level?: Database["public"]["Enums"]["course_level"] | null
           title: string
         }
         Update: {
           created_at?: string
           description?: string | null
+          enrolled_students?: number | null
           id?: string
           instructor_id?: string | null
+          level?: Database["public"]["Enums"]["course_level"] | null
           title?: string
         }
         Relationships: []
+      }
+      lesson_materials: {
+        Row: {
+          created_at: string | null
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          lesson_id: string | null
+          title: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          lesson_id?: string | null
+          title: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          lesson_id?: string | null
+          title?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_materials_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_progress: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          lesson_id: string | null
+          progress_percentage: number | null
+          student_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          progress_percentage?: number | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          progress_percentage?: number | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lessons: {
         Row: {
@@ -103,6 +226,53 @@ export type Database = {
         }
         Relationships: []
       }
+      submissions: {
+        Row: {
+          created_at: string | null
+          file_url: string | null
+          id: string
+          instructor_comment: string | null
+          lesson_id: string | null
+          reviewed: boolean | null
+          reviewed_at: string | null
+          student_id: string | null
+          text_answer: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          instructor_comment?: string | null
+          lesson_id?: string | null
+          reviewed?: boolean | null
+          reviewed_at?: string | null
+          student_id?: string | null
+          text_answer?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          instructor_comment?: string | null
+          lesson_id?: string | null
+          reviewed?: boolean | null
+          reviewed_at?: string | null
+          student_id?: string | null
+          text_answer?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -111,7 +281,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      course_level: "beginner" | "intermediate" | "advanced" | "expert"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -238,6 +408,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      course_level: ["beginner", "intermediate", "advanced", "expert"],
+    },
   },
 } as const
