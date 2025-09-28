@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { z } from 'zod';
 
 const translations = {
@@ -86,7 +86,7 @@ const authSchema = z.object({
   email: z.string().email('Invalid email').min(1, 'Email is required'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   fullName: z.string().min(1, 'Full name is required').optional(),
-  role: z.enum(['student', 'instructor']).optional()
+  
 });
 
 export default function Auth() {
@@ -94,7 +94,7 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<'student' | 'instructor'>('student');
+  
   const [errors, setErrors] = useState<any>({});
   const [loading, setLoading] = useState(false);
   
@@ -115,7 +115,7 @@ export default function Auth() {
   const validateForm = () => {
     try {
       const data = isSignUp 
-        ? { email, password, fullName, role }
+        ? { email, password, fullName }
         : { email, password };
       
       authSchema.parse(data);
@@ -229,18 +229,6 @@ export default function Auth() {
                     )}
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="role">{t.role}</Label>
-                    <Select value={role} onValueChange={(value: 'student' | 'instructor') => setRole(value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t.selectRole} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="student">{t.student}</SelectItem>
-                        <SelectItem value="instructor">{t.instructor}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </>
               )}
               

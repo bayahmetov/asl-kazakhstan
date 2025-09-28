@@ -1,9 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Heart, User, BookOpen, Globe } from 'lucide-react';
+import { Menu, X, Heart, User, BookOpen, Globe, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +16,7 @@ import {
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
+  const { user, profile, signOut } = useAuth();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -95,10 +98,46 @@ const Navigation = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             
-            <Button variant="default" size="sm" className="focus-outline">
-              <User className="mr-2 h-4 w-4" />
-              {t('nav.signIn')}
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="focus-outline flex items-center gap-2">
+                    <Avatar className="w-6 h-6">
+                      <AvatarImage src={profile?.avatar_url || ''} alt="Profile" />
+                      <AvatarFallback>
+                        {profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden sm:inline">{profile?.full_name || 'User'}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <NavLink to="/profile" className="w-full flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </NavLink>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <NavLink to="/auth">
+                    {t('nav.signIn')}
+                  </NavLink>
+                </Button>
+                <Button variant="default" size="sm" asChild>
+                  <NavLink to="/auth">
+                    Sign Up
+                  </NavLink>
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -157,10 +196,42 @@ const Navigation = () => {
                   {item.label}
                 </NavLink>
               ))}
-              <Button variant="default" className="w-full mt-4 focus-outline">
-                <User className="mr-2 h-4 w-4" />
-                {t('nav.signIn')}
-              </Button>
+              {user ? (
+                <div className="space-y-2 mt-4">
+                  <NavLink 
+                    to="/profile" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="w-full flex items-center px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md focus-outline"
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </NavLink>
+                  <Button 
+                    variant="outline" 
+                    className="w-full focus-outline"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      signOut();
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log Out
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2 mt-4">
+                  <Button variant="outline" className="w-full focus-outline" asChild>
+                    <NavLink to="/auth" onClick={() => setIsMenuOpen(false)}>
+                      {t('nav.signIn')}
+                    </NavLink>
+                  </Button>
+                  <Button variant="default" className="w-full focus-outline" asChild>
+                    <NavLink to="/auth" onClick={() => setIsMenuOpen(false)}>
+                      Sign Up
+                    </NavLink>
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
