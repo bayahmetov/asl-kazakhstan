@@ -27,22 +27,18 @@ const Courses = () => {
       try {
         const { data, error } = await supabase
           .from('courses')
-          .select(`
-            *,
-            profiles!instructor_id(full_name)
-          `)
+          .select('*')
           .order('created_at', { ascending: false });
 
         if (error) {
           console.error('Error fetching courses:', error);
-          // Use sample data as fallback
-          setCourses(sampleCourses);
+          setCourses([]);
         } else {
-          setCourses(data || sampleCourses);
+          setCourses(data || []);
         }
       } catch (error) {
         console.error('Error fetching courses:', error);
-        setCourses(sampleCourses);
+        setCourses([]);
       } finally {
         setLoading(false);
       }
@@ -51,58 +47,6 @@ const Courses = () => {
     fetchCourses();
   }, []);
 
-  // Sample courses for fallback
-  const sampleCourses = [
-    {
-      id: '1',
-      title: t('courses.alphabetTitle'),
-      description: t('courses.alphabetDesc'),
-      instructor_id: 'sample',
-      created_at: new Date().toISOString(),
-      level: 'Beginner',
-      lessons: 8,
-      duration: 120,
-      students: 127,
-      rating: 4.9,
-      isPopular: true
-    },
-    {
-      id: '2', 
-      title: t('courses.basicTitle'),
-      description: t('courses.basicDesc'),
-      instructor_id: 'sample',
-      created_at: new Date().toISOString(),
-      level: 'Beginner',
-      lessons: 12,
-      duration: 180,
-      students: 98,
-      rating: 4.8
-    },
-    {
-      id: '3',
-      title: t('courses.familyTitle'),
-      description: t('courses.familyDesc'),
-      instructor_id: 'sample',
-      created_at: new Date().toISOString(),
-      level: 'Beginner',
-      lessons: 10,
-      duration: 150,
-      students: 85,
-      rating: 4.7
-    },
-    {
-      id: '4',
-      title: t('courses.workTitle'),
-      description: t('courses.workDesc'),
-      instructor_id: 'sample',
-      created_at: new Date().toISOString(),
-      level: 'Advanced',
-      lessons: 18,
-      duration: 300,
-      students: 34,
-      rating: 4.9
-    }
-  ];
 
   const CourseCard = ({ course }: { course: any }) => (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">

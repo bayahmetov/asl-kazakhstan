@@ -102,17 +102,21 @@ export default function CourseDetail() {
           return;
         }
 
-        // Fetch instructor profile separately
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', courseData.instructor_id)
-          .single();
+        // Fetch instructor profile if course has an instructor
+        let profileData = null;
+        if (courseData.instructor_id) {
+          const { data: instructorProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', courseData.instructor_id)
+            .single();
+          profileData = instructorProfile;
+        }
 
         // Combine course with profile data
         const courseWithProfile = {
           ...courseData,
-          profiles: profileData || { full_name: 'Unknown Instructor' }
+          profiles: profileData || { full_name: 'No Instructor Assigned' }
         };
 
         setCourse(courseWithProfile);

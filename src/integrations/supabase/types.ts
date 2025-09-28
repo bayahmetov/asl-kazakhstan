@@ -19,21 +19,21 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          instructor_id: string
+          instructor_id: string | null
           title: string
         }
         Insert: {
           created_at?: string
           description?: string | null
           id?: string
-          instructor_id: string
+          instructor_id?: string | null
           title: string
         }
         Update: {
           created_at?: string
           description?: string | null
           id?: string
-          instructor_id?: string
+          instructor_id?: string | null
           title?: string
         }
         Relationships: []
