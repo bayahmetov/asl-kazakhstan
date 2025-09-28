@@ -284,6 +284,13 @@ export default function Profile() {
 
       if (updateError) throw updateError;
 
+      // Refresh profile data to show new avatar immediately
+      const { data: updatedProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
       setAvatarFile(null);
       setAvatarPreview(null);
       toast({

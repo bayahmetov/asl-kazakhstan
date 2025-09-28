@@ -206,7 +206,7 @@ export default function CourseDetail() {
                   </span>
                 </div>
               </div>
-              {isInstructor && isOwner && (
+              {profile?.role === 'instructor' && course.instructor_id === profile?.id && (
                 <Button onClick={handleUploadLesson}>
                   <Upload className="w-4 h-4 mr-2" />
                   {t.uploadLesson}
@@ -227,7 +227,7 @@ export default function CourseDetail() {
             {lessons.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-4">{t.noLessons}</p>
-                {isInstructor && isOwner && (
+                {profile?.role === 'instructor' && course.instructor_id === profile?.id && (
                   <Button onClick={handleUploadLesson} variant="outline">
                     <Plus className="w-4 h-4 mr-2" />
                     {t.addLesson}

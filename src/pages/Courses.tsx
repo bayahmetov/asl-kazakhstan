@@ -11,11 +11,16 @@ import { useToast } from '@/hooks/use-toast';
 
 const Courses = () => {
   const navigate = useNavigate();
-  const { user, profile, signOut } = useAuth();
+  const auth = useAuth();
   const { language, t } = useLanguage();
   const { toast } = useToast();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Handle case where auth context might not be available for public access
+  const user = auth?.user || null;
+  const profile = auth?.profile || null;
+  const signOut = auth?.signOut || (() => {});
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -165,7 +170,7 @@ const Courses = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
-      {/* Header with user info */}
+      {/* Header */}
       <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
@@ -173,18 +178,30 @@ const Courses = () => {
               <h1 className="text-2xl font-bold">{t('courses.title')}</h1>
               <p className="text-muted-foreground">{t('courses.subtitle')}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="font-medium">{profile?.full_name || user?.email}</p>
-                <Badge variant={profile?.role === 'instructor' ? 'default' : 'secondary'}>
-                  {profile?.role || 'student'}
-                </Badge>
+            {user && (
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="font-medium">{profile?.full_name || user?.email}</p>
+                  <Badge variant={profile?.role === 'instructor' ? 'default' : 'secondary'}>
+                    {profile?.role || 'student'}
+                  </Badge>
+                </div>
+                <Button onClick={signOut} variant="outline" size="sm">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
               </div>
-              <Button onClick={signOut} variant="outline" size="sm">
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
+            )}
+            {!user && (
+              <div className="flex items-center gap-2">
+                <Button onClick={() => navigate('/auth')} variant="outline" size="sm">
+                  Log In
+                </Button>
+                <Button onClick={() => navigate('/auth')} size="sm">
+                  Sign Up
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
