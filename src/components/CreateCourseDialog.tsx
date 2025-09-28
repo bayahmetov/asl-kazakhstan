@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,6 +28,8 @@ const translations = {
     titlePlaceholder: 'Enter course title...',
     description: 'Description',
     descriptionPlaceholder: 'Enter course description...',
+    level: 'Level',
+    levelPlaceholder: 'Select course level',
     cancel: 'Cancel',
     create: 'Create Course',
     creating: 'Creating...',
@@ -41,6 +44,8 @@ const translations = {
     titlePlaceholder: 'Введите название курса...',
     description: 'Описание',
     descriptionPlaceholder: 'Введите описание курса...',
+    level: 'Уровень',
+    levelPlaceholder: 'Выберите уровень курса',
     cancel: 'Отмена',
     create: 'Создать курс',
     creating: 'Создание...',
@@ -55,6 +60,8 @@ const translations = {
     titlePlaceholder: 'Курс атауын енгізіңіз...',
     description: 'Сипаттама',
     descriptionPlaceholder: 'Курс сипаттамасын енгізіңіз...',
+    level: 'Деңгей',
+    levelPlaceholder: 'Курс деңгейін таңдаңыз',
     cancel: 'Бас тарту',
     create: 'Курс жасау',
     creating: 'Жасалуда...',
@@ -75,6 +82,7 @@ export default function CreateCourseDialog({ onCourseCreated }: CreateCourseDial
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [level, setLevel] = useState('beginner');
   const [creating, setCreating] = useState(false);
   
   const t = translations[language];
@@ -94,6 +102,7 @@ export default function CreateCourseDialog({ onCourseCreated }: CreateCourseDial
         .insert({
           title: title.trim(),
           description: description.trim(),
+          level: level,
           instructor_id: profile?.id
         });
 
@@ -106,6 +115,7 @@ export default function CreateCourseDialog({ onCourseCreated }: CreateCourseDial
 
       setTitle('');
       setDescription('');
+      setLevel('beginner');
       setOpen(false);
       onCourseCreated();
     } catch (error) {
@@ -161,6 +171,19 @@ export default function CreateCourseDialog({ onCourseCreated }: CreateCourseDial
                 rows={4}
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="level">{t.level}</Label>
+              <Select value={level} onValueChange={setLevel}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t.levelPlaceholder} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="intermediate">Intermediate</SelectItem>
+                  <SelectItem value="advanced">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

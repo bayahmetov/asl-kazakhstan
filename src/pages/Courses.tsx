@@ -29,10 +29,39 @@ const Courses = () => {
       console.log('Fetching courses...');
       const startTime = performance.now();
       
+      // Fetch courses with dynamic statistics
       const { data, error } = await supabase
         .from('courses')
-        .select('*')
+        .select(`
+          *,
+          lessons:lessons(count),
+          enrollments:course_enrollments(count)
+        `)
         .order('created_at', { ascending: false });
+      
+      // Get lesson duration data separately
+      let coursesWithStats = data || [];
+      if (data) {
+        const courseIds = data.map(course => course.id);
+        const { data: durationData } = await supabase
+          .from('lessons')
+          .select('course_id, duration')
+          .in('course_id', courseIds);
+        
+        // Calculate total duration per course
+        const durationMap = durationData?.reduce((acc: any, lesson: any) => {
+          if (!acc[lesson.course_id]) acc[lesson.course_id] = 0;
+          acc[lesson.course_id] += lesson.duration || 0;
+          return acc;
+        }, {}) || {};
+        
+        coursesWithStats = data.map(course => ({
+          ...course,
+          totalDuration: durationMap[course.id] || 0,
+          lessonCount: course.lessons?.[0]?.count || 0,
+          studentCount: course.enrollments?.[0]?.count || 0
+        }));
+      }
 
       const endTime = performance.now();
       console.log(`Courses fetch took ${endTime - startTime} milliseconds`);
@@ -46,8 +75,8 @@ const Courses = () => {
           variant: "destructive"
         });
       } else {
-        console.log('Courses loaded:', data?.length || 0);
-        setCourses(data || []);
+        console.log('Courses loaded:', coursesWithStats.length);
+        setCourses(coursesWithStats);
       }
     } catch (error) {
       console.error('Error fetching courses:', error);
@@ -116,15 +145,15 @@ const Courses = () => {
         <div className="grid grid-cols-3 gap-4 mb-6 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            {course.duration ? `${Math.floor(course.duration / 60)}h` : '2h'}
+            {course.totalDuration ? `${Math.floor(course.totalDuration / 3600)}h ${Math.floor((course.totalDuration % 3600) / 60)}m` : '0m'}
           </div>
           <div className="flex items-center gap-1">
             <BookOpen className="h-4 w-4" />
-            {course.lessons || 8} {t('courses.lessons')}
+            {course.lessonCount} {t('courses.lessons')}
           </div>
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
-            {course.students || 50}
+            {course.studentCount}
           </div>
         </div>
         

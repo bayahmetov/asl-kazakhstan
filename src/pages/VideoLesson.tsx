@@ -7,6 +7,36 @@ import { useLanguage } from '@/contexts/LanguageContext';
 const VideoLesson = () => {
   const { courseId, lessonId } = useParams();
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const [lesson, setLesson] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLesson = async () => {
+      if (!lessonId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('lessons')
+          .select('*')
+          .eq('id', lessonId)
+          .single();
+
+        if (error) {
+          console.error('Error fetching lesson:', error);
+          return;
+        }
+
+        setLesson(data);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLesson();
+  }, [lessonId]);
   const { language } = useLanguage();
   const [currentLessonIndex, setCurrentLessonIndex] = useState(parseInt(lessonId || '1') - 1);
 

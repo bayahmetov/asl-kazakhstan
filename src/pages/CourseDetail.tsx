@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import DeleteCourseDialog from '@/components/DeleteCourseDialog';
 import DeleteLessonDialog from '@/components/DeleteLessonDialog';
-import { Play, Upload, Plus } from 'lucide-react';
+import CourseProgress from '@/components/CourseProgress';
+import { Play, Upload, Plus, BookOpen, Users, Clock, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const translations = {
@@ -234,6 +235,10 @@ export default function CourseDetail() {
                       <Upload className="w-4 h-4 mr-2" />
                       {t.uploadLesson}
                     </Button>
+                    <Button onClick={() => navigate('/instructor-dashboard')} variant="outline">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Button>
                     <DeleteCourseDialog courseId={course.id} courseName={course.title} />
                   </>
                 )}
@@ -241,6 +246,53 @@ export default function CourseDetail() {
             </div>
           </CardHeader>
         </Card>
+
+        {/* Course Statistics and Progress */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <BookOpen className="h-5 w-5 text-primary" />
+                <span className="font-medium">Lessons</span>
+              </div>
+              <p className="text-2xl font-bold">{lessons.length}</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="h-5 w-5 text-primary" />
+                <span className="font-medium">Duration</span>
+              </div>
+              <p className="text-2xl font-bold">
+                {lessons.reduce((total, lesson) => total + (lesson.duration || 0), 0) > 0 
+                  ? `${Math.floor(lessons.reduce((total, lesson) => total + (lesson.duration || 0), 0) / 3600)}h ${Math.floor((lessons.reduce((total, lesson) => total + (lesson.duration || 0), 0) % 3600) / 60)}m`
+                  : '0m'
+                }
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="h-5 w-5 text-primary" />
+                <span className="font-medium">Students</span>
+              </div>
+              <p className="text-2xl font-bold">0</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Course Progress for Students */}
+        {profile?.role === 'student' && (
+          <Card className="mb-8">
+            <CardContent className="p-6">
+              <CourseProgress courseId={course.id} totalLessons={lessons.length} />
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
