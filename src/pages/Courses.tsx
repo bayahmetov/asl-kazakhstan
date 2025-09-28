@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import CreateCourseDialog from '@/components/CreateCourseDialog';
 import { Play, Clock, Users, Star, CheckCircle, LogOut, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,28 +23,35 @@ const Courses = () => {
   const profile = auth?.profile || null;
   const signOut = auth?.signOut || (() => {});
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('courses')
-          .select('*')
-          .order('created_at', { ascending: false });
+  const fetchCourses = async () => {
+    if (loading) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error fetching courses:', error);
-          setCourses([]);
-        } else {
-          setCourses(data || []);
-        }
-      } catch (error) {
+      if (error) {
         console.error('Error fetching courses:', error);
         setCourses([]);
-      } finally {
-        setLoading(false);
+      } else {
+        setCourses(data || []);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      setCourses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const handleCourseCreated = () => {
+    fetchCourses(); // Refresh courses list
+  };
+
+  useEffect(() => {
     fetchCourses();
   }, []);
 
@@ -179,10 +187,7 @@ const Courses = () => {
                 <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
                   Share your knowledge with students around Kazakhstan. Create engaging video lessons and build your course today.
                 </p>
-                <Button size="lg" onClick={() => toast({ title: "Coming Soon", description: "Course creation will be available soon!" })}>
-                  <Play className="mr-2 h-5 w-5" />
-                  Create New Course  
-                </Button>
+                <CreateCourseDialog onCourseCreated={handleCourseCreated} />
               </CardContent>
             </Card>
           </section>

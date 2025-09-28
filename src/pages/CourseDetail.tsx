@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import DeleteCourseDialog from '@/components/DeleteCourseDialog';
+import DeleteLessonDialog from '@/components/DeleteLessonDialog';
 import { Play, Upload, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -66,6 +68,7 @@ interface Lesson {
   description: string;
   storage_key: string;
   created_at: string;
+  duration?: number;
 }
 
 export default function CourseDetail() {
@@ -160,6 +163,20 @@ export default function CourseDetail() {
     navigate(`/courses/${id}/upload`);
   };
 
+  const handleLessonDeleted = () => {
+    // Refresh lessons list
+    if (id) {
+      supabase
+        .from('lessons')
+        .select('*')
+        .eq('course_id', id)
+        .order('created_at', { ascending: true })
+        .then(({ data }) => {
+          setLessons(data || []);
+        });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -210,12 +227,17 @@ export default function CourseDetail() {
                   </span>
                 </div>
               </div>
-              {profile?.role === 'instructor' && course.instructor_id === profile?.id && (
-                <Button onClick={handleUploadLesson}>
-                  <Upload className="w-4 h-4 mr-2" />
-                  {t.uploadLesson}
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {profile?.role === 'instructor' && course.instructor_id === profile?.id && (
+                  <>
+                    <Button onClick={handleUploadLesson}>
+                      <Upload className="w-4 h-4 mr-2" />
+                      {t.uploadLesson}
+                    </Button>
+                    <DeleteCourseDialog courseId={course.id} courseName={course.title} />
+                  </>
+                )}
+              </div>
             </div>
           </CardHeader>
         </Card>
@@ -254,13 +276,23 @@ export default function CourseDetail() {
                           {new Date(lesson.created_at).toLocaleDateString()}
                         </span>
                       </div>
-                      <Button 
-                        onClick={() => handlePlayLesson(lesson.id)}
-                        size="sm"
-                      >
-                        <Play className="w-4 h-4 mr-2" />
-                        {t.playLesson}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          onClick={() => handlePlayLesson(lesson.id)}
+                          size="sm"
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          {t.playLesson}
+                        </Button>
+                        {profile?.role === 'instructor' && course.instructor_id === profile?.id && (
+                          <DeleteLessonDialog
+                            lessonId={lesson.id}
+                            lessonTitle={lesson.title}
+                            storageKey={lesson.storage_key}
+                            onLessonDeleted={handleLessonDeleted}
+                          />
+                        )}
+                      </div>
                     </div>
                     {index < lessons.length - 1 && <Separator />}
                   </div>

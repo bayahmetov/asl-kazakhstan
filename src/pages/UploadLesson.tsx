@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, ArrowLeft } from 'lucide-react';
+import { Upload, ArrowLeft, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 
 const translations = {
@@ -81,6 +82,8 @@ export default function UploadLesson() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<any>({});
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStartTime, setUploadStartTime] = useState<number | null>(null);
   
   const t = translations[language];
 
@@ -135,26 +138,70 @@ export default function UploadLesson() {
     }
   };
 
+  // Get video duration helper
+  const getVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        resolve(Math.round(video.duration));
+      };
+      video.onerror = () => resolve(0);
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
+  // Calculate estimated time remaining
+  const getTimeRemaining = (): string => {
+    if (!uploadStartTime || uploadProgress <= 0) return '';
+    
+    const elapsed = Date.now() - uploadStartTime;
+    const rate = uploadProgress / elapsed;
+    const remaining = ((100 - uploadProgress) / rate) / 1000;
+    
+    if (remaining > 60) {
+      return `~${Math.ceil(remaining / 60)} min remaining`;
+    }
+    return `~${Math.ceil(remaining)} sec remaining`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm() || !courseId || !videoFile) return;
     
     setUploading(true);
+    setUploadProgress(0);
+    setUploadStartTime(Date.now());
     
     try {
+      // Get video duration
+      const duration = await getVideoDuration(videoFile);
+
       // Upload video to Supabase Storage
       const fileExt = videoFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${courseId}/${fileName}`;
+
+      // Simulate progress for better UX (Supabase doesn't provide real progress)
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) return prev; // Cap at 90% until actual upload completes
+          return prev + Math.random() * 5;
+        });
+      }, 200);
       
       const { error: uploadError } = await supabase.storage
         .from('lesson-videos')
         .upload(filePath, videoFile);
+
+      clearInterval(progressInterval);
       
       if (uploadError) {
         throw uploadError;
       }
+
+      setUploadProgress(95);
       
       // Create lesson record
       const { error: lessonError } = await supabase
@@ -163,7 +210,8 @@ export default function UploadLesson() {
           course_id: courseId,
           title: title.trim(),
           description: description.trim() || null,
-          storage_key: filePath
+          storage_key: filePath,
+          duration
         });
       
       if (lessonError) {
@@ -173,14 +221,19 @@ export default function UploadLesson() {
           .remove([filePath]);
         throw lessonError;
       }
+
+      setUploadProgress(100);
       
       toast({
         title: "Success",
         description: "Lesson uploaded successfully"
       });
-      
-      navigate(`/courses/${courseId}`);
+
+      setTimeout(() => {
+        navigate(`/courses/${courseId}`);
+      }, 500);
     } catch (error: any) {
+      setUploadProgress(0);
       toast({
         title: "Upload failed",
         description: error.message || "Failed to upload lesson",
@@ -188,6 +241,7 @@ export default function UploadLesson() {
       });
     } finally {
       setUploading(false);
+      setUploadStartTime(null);
     }
   };
 
@@ -277,10 +331,25 @@ export default function UploadLesson() {
                 )}
               </div>
 
+              {uploading && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Upload Progress</span>
+                    <span>{Math.round(uploadProgress)}%</span>
+                  </div>
+                  <Progress value={uploadProgress} className="w-full" />
+                  {uploadStartTime && uploadProgress > 5 && (
+                    <p className="text-sm text-muted-foreground text-center">
+                      {getTimeRemaining()}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <Button type="submit" className="w-full" disabled={uploading}>
                 {uploading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     {t.uploading}
                   </>
                 ) : (
