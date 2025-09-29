@@ -155,7 +155,31 @@ export default function CourseManagement() {
           course_id: courseId,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding student:', error);
+        
+        // Check for RLS policy violation or permission errors
+        if (error.code === '42501' || error.message.includes('row-level security')) {
+          toast({
+            title: "Permission Denied",
+            description: "You don't have permission to enroll students in this course.",
+            variant: "destructive",
+          });
+        } else if (error.code === '23505') {
+          toast({
+            title: "Already Enrolled",
+            description: `${studentName} is already enrolled in this course.`,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to add student to course. Please try again.",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
 
       toast({
         title: "Success",
@@ -165,9 +189,10 @@ export default function CourseManagement() {
       // Refresh data
       await fetchCourseData();
     } catch (error: any) {
+      console.error('Error adding student:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to add student to course",
+        description: "Failed to add student to course. Please try again.",
         variant: "destructive"
       });
     } finally {
