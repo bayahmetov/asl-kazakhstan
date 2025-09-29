@@ -209,7 +209,25 @@ export default function CourseManagement() {
         .delete()
         .eq('id', enrollmentId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error removing student:', error);
+        
+        // Check for RLS policy violation or permission errors
+        if (error.code === '42501' || error.message.includes('row-level security')) {
+          toast({
+            title: "Permission Denied",
+            description: "You don't have permission to remove students from this course.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to remove student from course. Please try again.",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
 
       toast({
         title: "Success",
@@ -219,9 +237,10 @@ export default function CourseManagement() {
       // Refresh data
       await fetchCourseData();
     } catch (error: any) {
+      console.error('Error removing student:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to remove student from course",
+        description: "Failed to remove student from course. Please try again.",
         variant: "destructive"
       });
     } finally {
