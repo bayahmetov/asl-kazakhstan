@@ -110,6 +110,7 @@ export default function InstructorDashboard() {
   
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
   const [comments, setComments] = useState<{ [key: string]: string }>({});
 
@@ -210,42 +211,114 @@ export default function InstructorDashboard() {
   const fetchSubmissions = async () => {
     if (!profile?.id || profile.role !== 'instructor') return;
 
-    try {
-      // Get submissions for courses taught by this instructor
-      const { data, error } = await supabase
-        .from('submissions')
-        .select(`
-          *,
-          lessons!inner(
-            title,
-            courses!inner(
-              title,
-              instructor_id
-            )
-          ),
-          profiles!inner(
-            full_name,
-            email
-          )
-        `)
-        .eq('lessons.courses.instructor_id', profile.id)
-        .order('created_at', { ascending: false });
+    setLoading(true);
+    setError(null);
 
-      if (error) {
-        console.error('Error fetching submissions:', error);
+    try {
+      // Step 1: Get instructor's courses
+      const { data: instructorCourses, error: coursesError } = await supabase
+        .from('courses')
+        .select('id, title')
+        .eq('instructor_id', profile.id);
+
+      if (coursesError) {
+        console.error('Error fetching courses:', coursesError);
+        setError('Failed to load courses');
         return;
       }
 
-      setSubmissions(data || []);
+      if (!instructorCourses || instructorCourses.length === 0) {
+        setSubmissions([]);
+        return;
+      }
+
+      const courseIds = instructorCourses.map(course => course.id);
+
+      // Step 2: Get lessons for these courses
+      const { data: lessons, error: lessonsError } = await supabase
+        .from('lessons')
+        .select('id, title, course_id')
+        .in('course_id', courseIds);
+
+      if (lessonsError) {
+        console.error('Error fetching lessons:', lessonsError);
+        setError('Failed to load lessons');
+        return;
+      }
+
+      if (!lessons || lessons.length === 0) {
+        setSubmissions([]);
+        return;
+      }
+
+      const lessonIds = lessons.map(lesson => lesson.id);
+
+      // Step 3: Get submissions for these lessons
+      const { data: submissionsData, error: submissionsError } = await supabase
+        .from('submissions')
+        .select('*')
+        .in('lesson_id', lessonIds)
+        .order('created_at', { ascending: false });
+
+      if (submissionsError) {
+        console.error('Error fetching submissions:', submissionsError);
+        setError('Failed to load submissions');
+        return;
+      }
+
+      if (!submissionsData || submissionsData.length === 0) {
+        setSubmissions([]);
+        return;
+      }
+
+      // Step 4: Get student profiles for these submissions
+      const studentIds = [...new Set(submissionsData.map(sub => sub.student_id))];
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', studentIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        setError('Failed to load student profiles');
+        return;
+      }
+
+      // Step 5: Combine all data
+      const enrichedSubmissions = submissionsData.map(submission => {
+        const lesson = lessons.find(l => l.id === submission.lesson_id);
+        const course = instructorCourses.find(c => c.id === lesson?.course_id);
+        const studentProfile = profiles?.find(p => p.id === submission.student_id);
+
+        return {
+          ...submission,
+          lessons: {
+            title: lesson?.title || 'Unknown Lesson',
+            courses: {
+              title: course?.title || 'Unknown Course'
+            }
+          },
+          profiles: {
+            full_name: studentProfile?.full_name || 'Unknown Student',
+            email: studentProfile?.email || ''
+          }
+        };
+      });
+
+      setSubmissions(enrichedSubmissions);
       
       // Initialize comments state
       const initialComments: { [key: string]: string } = {};
-      data?.forEach(submission => {
+      enrichedSubmissions.forEach(submission => {
         initialComments[submission.id] = submission.feedback || '';
       });
       setComments(initialComments);
+
     } catch (error) {
       console.error('Error:', error);
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -291,8 +364,79 @@ export default function InstructorDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="container mx-auto px-4 py-8">
+        <Button 
+          onClick={() => navigate('/courses')} 
+          variant="outline" 
+          className="mb-6"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          {t.backToCourses}
+        </Button>
+
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-3 mb-8">
+            <FileText className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold">{t.dashboard}</h1>
+          </div>
+
+          <div className="space-y-4">
+            {/* Loading skeleton */}
+            {[1, 2, 3].map((i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <div className="h-5 bg-muted rounded animate-pulse w-48"></div>
+                      <div className="h-4 bg-muted rounded animate-pulse w-32"></div>
+                    </div>
+                    <div className="h-6 bg-muted rounded animate-pulse w-20"></div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="h-4 bg-muted rounded animate-pulse"></div>
+                  <div className="h-4 bg-muted rounded animate-pulse w-3/4"></div>
+                  <div className="h-10 bg-muted rounded animate-pulse"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Button 
+          onClick={() => navigate('/courses')} 
+          variant="outline" 
+          className="mb-6"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          {t.backToCourses}
+        </Button>
+
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-3 mb-8">
+            <FileText className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold">{t.dashboard}</h1>
+          </div>
+
+          <Card>
+            <CardContent className="text-center py-8">
+              <div className="text-destructive mb-4">
+                <FileText className="h-16 w-16 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold mb-2">Failed to Load Data</h2>
+                <p className="text-muted-foreground mb-4">{error}</p>
+                <Button onClick={() => fetchSubmissions()} variant="outline">
+                  Try Again
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

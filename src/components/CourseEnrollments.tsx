@@ -69,26 +69,51 @@ const CourseEnrollments: React.FC<CourseEnrollmentsProps> = ({ courseId }) => {
 
   const fetchEnrollments = async () => {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      
+      // Step 1: Get course enrollments for this course
+      const { data: enrollmentsData, error: enrollmentsError } = await supabase
         .from('course_enrollments')
-        .select(`
-          id,
-          student_id,
-          created_at,
-          profiles!course_enrollments_student_id_fkey (
-            full_name,
-            email
-          )
-        `)
+        .select('id, student_id, enrolled_at')
         .eq('course_id', courseId)
-        .order('created_at', { ascending: false });
+        .order('enrolled_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching enrollments:', error);
+      if (enrollmentsError) {
+        console.error('Error fetching enrollments:', enrollmentsError);
         return;
       }
 
-      setEnrollments(data || []);
+      if (!enrollmentsData || enrollmentsData.length === 0) {
+        setEnrollments([]);
+        return;
+      }
+
+      // Step 2: Get student profiles for these enrollments
+      const studentIds = enrollmentsData.map(enrollment => enrollment.student_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', studentIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        return;
+      }
+
+      // Step 3: Combine enrollment data with profile data
+      const enrichedEnrollments = enrollmentsData.map(enrollment => {
+        const profile = profilesData?.find(p => p.id === enrollment.student_id);
+        return {
+          ...enrollment,
+          created_at: enrollment.enrolled_at, // Map enrolled_at to created_at for compatibility
+          profiles: {
+            full_name: profile?.full_name || 'Unknown Student',
+            email: profile?.email || ''
+          }
+        };
+      });
+
+      setEnrollments(enrichedEnrollments);
     } catch (error) {
       console.error('Error:', error);
     } finally {
