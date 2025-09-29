@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { NotificationBell } from '@/components/NotificationBell';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,31 +100,37 @@ const Navigation = () => {
             </DropdownMenu>
             
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="focus-outline flex items-center gap-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src={profile?.avatar_url || ''} alt="Profile" />
-                      <AvatarFallback>
-                        {profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="hidden sm:inline">{profile?.full_name || 'User'}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <NavLink to="/profile" className="w-full flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </NavLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={signOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-2">
+                {/* Notification Bell */}
+                <NotificationBell />
+                
+                {/* User Profile Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="focus-outline flex items-center gap-2">
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src={profile?.avatar_url || ''} alt="Profile" />
+                        <AvatarFallback>
+                          {profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="hidden sm:inline">{profile?.full_name || 'User'}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <NavLink to="/profile" className="w-full flex items-center">
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </NavLink>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={signOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Log Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" asChild>
@@ -142,6 +149,9 @@ const Navigation = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-2">
+            {/* Mobile Notifications (for authenticated users) */}
+            {user && <NotificationBell />}
+            
             {/* Mobile Language Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
