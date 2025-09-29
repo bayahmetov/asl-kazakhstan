@@ -242,6 +242,13 @@ export default function CourseDetail() {
                       <Upload className="w-4 h-4 mr-2" />
                       {t.uploadLesson}
                     </Button>
+                    <Button 
+                      onClick={() => navigate(`/courses/${id}/manage`)}
+                      variant="outline"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Manage Participants
+                    </Button>
                     <Button onClick={() => navigate('/instructor-dashboard')} variant="outline">
                       <Settings className="w-4 h-4 mr-2" />
                       Dashboard

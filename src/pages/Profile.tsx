@@ -17,6 +17,7 @@ const translations = {
     firstName: 'First Name',
     lastName: 'Last Name',
     email: 'Email',
+    username: 'Username',
     avatar: 'Avatar',
     changeAvatar: 'Change Avatar',
     updateProfile: 'Update Profile',
@@ -27,6 +28,7 @@ const translations = {
     logout: 'Log Out',
     firstNamePlaceholder: 'Enter your first name',
     lastNamePlaceholder: 'Enter your last name',
+    usernamePlaceholder: 'Enter your username',
     passwordPlaceholder: 'Enter new password',
     confirmPasswordPlaceholder: 'Confirm new password',
     updating: 'Updating...',
@@ -35,13 +37,16 @@ const translations = {
     passwordMismatch: 'Passwords do not match',
     passwordTooShort: 'Password must be at least 6 characters',
     avatarUpdated: 'Avatar updated successfully',
-    role: 'Role'
+    role: 'Role',
+    usernameFormat: 'Username must be 3-30 characters, letters, numbers, underscores and hyphens only',
+    usernameTaken: 'Username is already taken'
   },
   ru: {
     profile: 'Профиль',
     firstName: 'Имя',
     lastName: 'Фамилия',
     email: 'Email',
+    username: 'Имя пользователя',
     avatar: 'Аватар',
     changeAvatar: 'Изменить аватар',
     updateProfile: 'Обновить профиль',
@@ -52,6 +57,7 @@ const translations = {
     logout: 'Выйти',
     firstNamePlaceholder: 'Введите ваше имя',
     lastNamePlaceholder: 'Введите вашу фамилию',
+    usernamePlaceholder: 'Введите имя пользователя',
     passwordPlaceholder: 'Введите новый пароль',
     confirmPasswordPlaceholder: 'Подтвердите новый пароль',
     updating: 'Обновление...',
@@ -60,13 +66,16 @@ const translations = {
     passwordMismatch: 'Пароли не совпадают',
     passwordTooShort: 'Пароль должен содержать минимум 6 символов',
     avatarUpdated: 'Аватар успешно обновлен',
-    role: 'Роль'
+    role: 'Роль',
+    usernameFormat: 'Имя пользователя должно содержать 3-30 символов, только буквы, цифры, подчеркивания и дефисы',
+    usernameTaken: 'Имя пользователя уже занято'
   },
   kz: {
     profile: 'Профиль',
     firstName: 'Аты',
     lastName: 'Тегі',
     email: 'Email',
+    username: 'Пайдаланушы аты',
     avatar: 'Аватар',
     changeAvatar: 'Аватарды өзгерту',
     updateProfile: 'Профильді жаңарту',
@@ -77,6 +86,7 @@ const translations = {
     logout: 'Шығу',
     firstNamePlaceholder: 'Атыңызды енгізіңіз',
     lastNamePlaceholder: 'Тегіңізді енгізіңіз',
+    usernamePlaceholder: 'Пайдаланушы атын енгізіңіз',
     passwordPlaceholder: 'Жаңа құпия сөзді енгізіңіз',
     confirmPasswordPlaceholder: 'Құпия сөзді растаңыз',
     updating: 'Жаңартылуда...',
@@ -85,13 +95,16 @@ const translations = {
     passwordMismatch: 'Құпия сөздер сәйкес келмейді',
     passwordTooShort: 'Құпия сөз кемінде 6 таңбадан тұруы керек',
     avatarUpdated: 'Аватар сәтті жаңартылды',
-    role: 'Рөл'
+    role: 'Рөл',
+    usernameFormat: 'Пайдаланушы аты 3-30 таңбадан тұруы керек, тек әріптер, сандар, астын сызу және дефистер',
+    usernameTaken: 'Пайдаланушы аты бос емес'
   }
 };
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50, 'First name must be less than 50 characters').optional(),
   lastName: z.string().min(1, 'Last name is required').max(50, 'Last name must be less than 50 characters').optional(),
+  username: z.string().min(3, 'Username must be at least 3 characters').max(30, 'Username must be less than 30 characters').regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores and hyphens').optional(),
 });
 
 const passwordSchema = z.object({
@@ -110,6 +123,7 @@ export default function Profile() {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -125,12 +139,13 @@ export default function Profile() {
       const [first, ...lastParts] = (profile.full_name || '').split(' ');
       setFirstName(first || '');
       setLastName(lastParts.join(' ') || '');
+      setUsername(profile.username || '');
     }
   }, [profile]);
 
   const validateProfile = () => {
     try {
-      profileSchema.parse({ firstName, lastName });
+      profileSchema.parse({ firstName, lastName, username });
       setProfileErrors({});
       return true;
     } catch (error) {
@@ -204,13 +219,26 @@ export default function Profile() {
     setProfileLoading(true);
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      const updateData: any = { full_name: fullName };
+      
+      // Only update username if it's provided and different from current
+      if (username.trim() && username.trim() !== (profile?.username || '')) {
+        updateData.username = username.trim();
+      }
       
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName })
+        .update(updateData)
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        // Handle unique constraint violation for username
+        if (error.code === '23505' && error.message.includes('username')) {
+          setProfileErrors({ username: t.usernameTaken });
+          return;
+        }
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -414,6 +442,22 @@ export default function Profile() {
                     <p className="text-sm text-destructive">{profileErrors.lastName}</p>
                   )}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username">{t.username}</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder={t.usernamePlaceholder}
+                  className={profileErrors.username ? 'border-destructive' : ''}
+                />
+                <p className="text-xs text-muted-foreground">{t.usernameFormat}</p>
+                {profileErrors.username && (
+                  <p className="text-sm text-destructive">{profileErrors.username}</p>
+                )}
               </div>
 
               <div className="space-y-2">

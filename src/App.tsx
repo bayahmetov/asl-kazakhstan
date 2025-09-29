@@ -19,6 +19,7 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
+import CourseManagement from "./pages/CourseManagement";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,11 @@ const App = () => (
                 <Route path="/courses/:id/upload" element={
                   <ProtectedRoute requireRole="instructor">
                     <UploadLesson />
+                  </ProtectedRoute>
+                } />
+                <Route path="/courses/:id/manage" element={
+                  <ProtectedRoute requireRole="instructor">
+                    <CourseManagement />
                   </ProtectedRoute>
                 } />
                 <Route path="/courses/:courseId/lesson/:lessonId" element={
