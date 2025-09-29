@@ -302,6 +302,10 @@ export type Database = {
           role: string
         }[]
       }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       course_level: "beginner" | "intermediate" | "advanced" | "expert"
