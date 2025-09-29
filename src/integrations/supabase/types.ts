@@ -278,30 +278,7 @@ export type Database = {
       }
     }
     Views: {
-      public_instructor_profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          full_name: string | null
-          id: string | null
-          role: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string | null
-          role?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string | null
-          role?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_public_instructor_profiles: {

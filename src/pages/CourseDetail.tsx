@@ -110,12 +110,18 @@ export default function CourseDetail() {
         // Fetch instructor profile if course has an instructor
         let profileData = null;
         if (courseData.instructor_id) {
-          const { data: instructorProfile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', courseData.instructor_id)
-            .single();
-          profileData = instructorProfile;
+          // Use secure function to get public instructor data (no email exposure)
+          const { data: instructorProfiles } = await supabase
+            .rpc('get_public_instructor_profiles');
+          
+          // Find the specific instructor for this course
+          const instructorProfile = instructorProfiles?.find(
+            profile => profile.id === courseData.instructor_id
+          );
+          
+          profileData = instructorProfile ? { 
+            full_name: instructorProfile.full_name 
+          } : null;
         }
 
         // Combine course with profile data
