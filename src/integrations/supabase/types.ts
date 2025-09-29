@@ -18,26 +18,26 @@ export type Database = {
         Row: {
           completed: boolean | null
           completion_percentage: number | null
-          course_id: string | null
+          course_id: string
           enrolled_at: string | null
           id: string
-          student_id: string | null
+          student_id: string
         }
         Insert: {
           completed?: boolean | null
           completion_percentage?: number | null
-          course_id?: string | null
+          course_id: string
           enrolled_at?: string | null
           id?: string
-          student_id?: string | null
+          student_id: string
         }
         Update: {
           completed?: boolean | null
           completion_percentage?: number | null
-          course_id?: string | null
+          course_id?: string
           enrolled_at?: string | null
           id?: string
-          student_id?: string | null
+          student_id?: string
         }
         Relationships: [
           {
@@ -86,7 +86,7 @@ export type Database = {
           file_type: string
           file_url: string
           id: string
-          lesson_id: string | null
+          lesson_id: string
           title: string
           uploaded_by: string | null
         }
@@ -96,7 +96,7 @@ export type Database = {
           file_type: string
           file_url: string
           id?: string
-          lesson_id?: string | null
+          lesson_id: string
           title: string
           uploaded_by?: string | null
         }
@@ -106,7 +106,7 @@ export type Database = {
           file_type?: string
           file_url?: string
           id?: string
-          lesson_id?: string | null
+          lesson_id?: string
           title?: string
           uploaded_by?: string | null
         }
@@ -126,9 +126,9 @@ export type Database = {
           completed_at: string | null
           created_at: string | null
           id: string
-          lesson_id: string | null
+          lesson_id: string
           progress_percentage: number | null
-          student_id: string | null
+          student_id: string
           updated_at: string | null
         }
         Insert: {
@@ -136,9 +136,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           id?: string
-          lesson_id?: string | null
+          lesson_id: string
           progress_percentage?: number | null
-          student_id?: string | null
+          student_id: string
           updated_at?: string | null
         }
         Update: {
@@ -146,9 +146,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           id?: string
-          lesson_id?: string | null
+          lesson_id?: string
           progress_percentage?: number | null
-          student_id?: string | null
+          student_id?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -233,10 +233,10 @@ export type Database = {
           file_url: string | null
           id: string
           instructor_comment: string | null
-          lesson_id: string | null
+          lesson_id: string
           reviewed: boolean | null
           reviewed_at: string | null
-          student_id: string | null
+          student_id: string
           text_answer: string | null
           updated_at: string | null
         }
@@ -246,10 +246,10 @@ export type Database = {
           file_url?: string | null
           id?: string
           instructor_comment?: string | null
-          lesson_id?: string | null
+          lesson_id: string
           reviewed?: boolean | null
           reviewed_at?: string | null
-          student_id?: string | null
+          student_id: string
           text_answer?: string | null
           updated_at?: string | null
         }
@@ -259,10 +259,10 @@ export type Database = {
           file_url?: string | null
           id?: string
           instructor_comment?: string | null
-          lesson_id?: string | null
+          lesson_id?: string
           reviewed?: boolean | null
           reviewed_at?: string | null
-          student_id?: string | null
+          student_id?: string
           text_answer?: string | null
           updated_at?: string | null
         }
