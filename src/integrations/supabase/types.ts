@@ -306,6 +306,15 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      search_students_for_enrollment: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          full_name: string
+          id: string
+          role: string
+          username: string
+        }[]
+      }
     }
     Enums: {
       course_level: "beginner" | "intermediate" | "advanced" | "expert"

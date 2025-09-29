@@ -13,10 +13,8 @@ import { Search, UserPlus, UserMinus, Users, ArrowLeft } from 'lucide-react';
 interface UserProfile {
   id: string;
   full_name: string;
-  email: string;
   username: string;
   role: string;
-  avatar_url?: string;
 }
 
 interface Course {
@@ -31,7 +29,12 @@ interface CourseEnrollment {
   student_id: string;
   course_id: string;
   enrolled_at: string;
-  profiles: UserProfile;
+  profiles: {
+    id: string;
+    full_name: string;
+    username: string;
+    role: string;
+  };
 }
 
 export default function CourseManagement() {
@@ -53,7 +56,6 @@ export default function CourseManagement() {
     !enrolledStudents.some(enrollment => enrollment.student_id === user.id) && // Not already enrolled
     (
       user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.username?.toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
@@ -114,10 +116,8 @@ export default function CourseManagement() {
           profiles: profilesData?.find(profile => profile.id === enrollment.student_id) || {
             id: enrollment.student_id,
             full_name: '',
-            email: '',
             username: '',
-            role: 'student',
-            avatar_url: null
+            role: 'student'
           }
         }));
 
@@ -126,11 +126,9 @@ export default function CourseManagement() {
         setEnrolledStudents([]);
       }
 
-      // Fetch all users (for adding new students)
+      // Fetch all students using the secure function (no sensitive data)
       const { data: usersData, error: usersError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, username, role, avatar_url')
-        .eq('role', 'student');
+        .rpc('search_students_for_enrollment');
 
       if (usersError) throw usersError;
       setAllUsers(usersData || []);
@@ -276,9 +274,8 @@ export default function CourseManagement() {
                       </div>
                       <div>
                         <p className="font-medium">{enrollment.profiles.full_name || 'Unnamed User'}</p>
-                        <p className="text-sm text-muted-foreground">{enrollment.profiles.email}</p>
                         {enrollment.profiles.username && (
-                          <p className="text-xs text-muted-foreground">@{enrollment.profiles.username}</p>
+                          <p className="text-sm text-muted-foreground">@{enrollment.profiles.username}</p>
                         )}
                       </div>
                     </div>
@@ -333,7 +330,7 @@ export default function CourseManagement() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Search students by name, email, or username..."
+                placeholder="Search students by name or username..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -362,9 +359,8 @@ export default function CourseManagement() {
                       </div>
                       <div>
                         <p className="font-medium">{user.full_name || 'Unnamed User'}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
                         {user.username && (
-                          <p className="text-xs text-muted-foreground">@{user.username}</p>
+                          <p className="text-sm text-muted-foreground">@{user.username}</p>
                         )}
                       </div>
                     </div>
