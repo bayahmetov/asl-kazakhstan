@@ -57,6 +57,7 @@ export type Database = {
           id: string
           instructor_id: string | null
           level: Database["public"]["Enums"]["course_level"] | null
+          tags: string[] | null
           title: string
         }
         Insert: {
@@ -66,6 +67,7 @@ export type Database = {
           id?: string
           instructor_id?: string | null
           level?: Database["public"]["Enums"]["course_level"] | null
+          tags?: string[] | null
           title: string
         }
         Update: {
@@ -75,6 +77,7 @@ export type Database = {
           id?: string
           instructor_id?: string | null
           level?: Database["public"]["Enums"]["course_level"] | null
+          tags?: string[] | null
           title?: string
         }
         Relationships: [
@@ -209,34 +212,88 @@ export type Database = {
       }
       messages: {
         Row: {
+          admin_reply: string | null
           created_at: string
           email: string
           id: string
           inquiry_type: string | null
           message: string
           name: string
+          replied: boolean
+          replied_at: string | null
+          replied_by: string | null
           subject: string | null
           user_id: string | null
         }
         Insert: {
+          admin_reply?: string | null
           created_at?: string
           email: string
           id?: string
           inquiry_type?: string | null
           message: string
           name: string
+          replied?: boolean
+          replied_at?: string | null
+          replied_by?: string | null
           subject?: string | null
           user_id?: string | null
         }
         Update: {
+          admin_reply?: string | null
           created_at?: string
           email?: string
           id?: string
           inquiry_type?: string | null
           message?: string
           name?: string
+          replied?: boolean
+          replied_at?: string | null
+          replied_by?: string | null
           subject?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_course_enrolled: boolean
+          email_homework_feedback: boolean
+          email_homework_submitted: boolean
+          email_lesson_published: boolean
+          email_message_reply: boolean
+          email_support_reply: boolean
+          id: string
+          in_app_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_course_enrolled?: boolean
+          email_homework_feedback?: boolean
+          email_homework_submitted?: boolean
+          email_lesson_published?: boolean
+          email_message_reply?: boolean
+          email_support_reply?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_course_enrolled?: boolean
+          email_homework_feedback?: boolean
+          email_homework_submitted?: boolean
+          email_lesson_published?: boolean
+          email_message_reply?: boolean
+          email_support_reply?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -353,6 +410,77 @@ export type Database = {
           },
         ]
       }
+      support_replies: {
+        Row: {
+          created_at: string
+          id: string
+          is_admin_reply: boolean
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_admin_reply?: boolean
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_admin_reply?: boolean
+          message?: string
+          ticket_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_replies_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          message: string
+          priority: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          priority?: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          priority?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -371,6 +499,19 @@ export type Database = {
       get_user_role: {
         Args: { _user_id: string }
         Returns: string
+      }
+      search_content: {
+        Args: { search_level?: string; search_query: string }
+        Returns: {
+          description: string
+          id: string
+          instructor_id: string
+          instructor_name: string
+          level: string
+          relevance: number
+          title: string
+          type: string
+        }[]
       }
       search_students_for_enrollment: {
         Args: Record<PropertyKey, never>

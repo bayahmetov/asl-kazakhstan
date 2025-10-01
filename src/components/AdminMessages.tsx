@@ -4,10 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Mail, MessageCircle, User, Calendar, Tag, ExternalLink } from 'lucide-react';
+import { Mail, MessageCircle, User, Calendar, Tag, ExternalLink, Send, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ContactMessage {
@@ -19,13 +22,19 @@ interface ContactMessage {
   inquiry_type: string | null;
   created_at: string;
   user_id: string | null;
+  replied: boolean;
+  admin_reply: string | null;
+  replied_at: string | null;
+  replied_by: string | null;
 }
 
 export const AdminMessages = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [replyText, setReplyText] = useState('');
 
   const fetchMessages = async () => {
     try {
@@ -36,6 +45,15 @@ export const AdminMessages = () => {
 
       if (error) throw error;
       setMessages(data || []);
+      
+      // Set reply text if message is selected and has a reply
+      if (selectedMessage) {
+        const updatedMessage = data?.find(m => m.id === selectedMessage.id);
+        if (updatedMessage) {
+          setSelectedMessage(updatedMessage);
+          setReplyText(updatedMessage.admin_reply || '');
+        }
+      }
     } catch (error: any) {
       console.error('Error fetching messages:', error);
       toast({
@@ -45,6 +63,40 @@ export const AdminMessages = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleReply = async (messageId: string) => {
+    if (!user || !replyText.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({
+          replied: true,
+          admin_reply: replyText,
+          replied_at: new Date().toISOString(),
+          replied_by: user.id
+        })
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Reply Sent",
+        description: "Your reply has been sent to the user.",
+      });
+
+      setReplyText('');
+      setSelectedMessage(null);
+      fetchMessages();
+    } catch (error: any) {
+      console.error('Error sending reply:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send reply",
+        variant: "destructive",
+      });
     }
   };
 
@@ -142,7 +194,7 @@ export const AdminMessages = () => {
                   <Dialog>
                     <DialogTrigger asChild>
                       <div className="p-4 rounded-lg border hover:bg-muted cursor-pointer transition-colors">
-                        <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="font-medium truncate">{message.name}</h3>
@@ -152,6 +204,12 @@ export const AdminMessages = () => {
                                   className={`text-xs ${getInquiryTypeColor(message.inquiry_type)}`}
                                 >
                                   {getInquiryTypeLabel(message.inquiry_type)}
+                                </Badge>
+                              )}
+                              {message.replied && (
+                                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Replied
                                 </Badge>
                               )}
                             </div>
@@ -232,6 +290,41 @@ export const AdminMessages = () => {
                             <p className="whitespace-pre-wrap">{message.message}</p>
                           </div>
                         </div>
+                        
+                        {message.admin_reply && (
+                          <div>
+                            <Label className="font-medium">Admin Reply:</Label>
+                            <div className="mt-2 p-4 bg-primary/10 rounded-lg">
+                              <p className="whitespace-pre-wrap">{message.admin_reply}</p>
+                              {message.replied_at && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  Replied {formatDistanceToNow(new Date(message.replied_at), { addSuffix: true })}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {!message.replied && (
+                          <div className="space-y-2">
+                            <Label>Send Reply</Label>
+                            <Textarea
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              placeholder="Type your reply..."
+                              rows={4}
+                            />
+                            <Button 
+                              onClick={() => handleReply(message.id)} 
+                              disabled={!replyText.trim()}
+                              className="w-full"
+                            >
+                              <Send className="h-4 w-4 mr-2" />
+                              Send Reply
+                            </Button>
+                          </div>
+                        )}
+                        
                         <div className="flex gap-2">
                           <Button 
                             onClick={() => window.open(`mailto:${message.email}?subject=Re: ${message.subject || 'Your message'}`)}
@@ -254,7 +347,3 @@ export const AdminMessages = () => {
     </Card>
   );
 };
-
-const Label = ({ className, children }: { className?: string; children: React.ReactNode }) => (
-  <span className={`text-sm font-medium ${className || ''}`}>{children}</span>
-);

@@ -16,6 +16,7 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
@@ -73,6 +74,11 @@ const App = () => (
                 } />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/support" element={
+                  <ProtectedRoute>
+                    <Support />
+                  </ProtectedRoute>
+                } />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
