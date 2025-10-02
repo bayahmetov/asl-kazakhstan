@@ -542,6 +542,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       search_content: {
         Args: { search_level?: string; search_query: string }
         Returns: {
