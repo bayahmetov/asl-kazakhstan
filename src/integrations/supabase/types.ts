@@ -675,10 +675,6 @@ export type Database = {
       }
     }
     Functions: {
-      can_view_limited_profile: {
-        Args: { _profile_id: string; _viewer_id: string }
-        Returns: boolean
-      }
       get_public_instructor_profiles: {
         Args: Record<PropertyKey, never>
         Returns: {
