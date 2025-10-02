@@ -117,11 +117,11 @@ export default function CourseDetail() {
           return;
         }
 
-        // Fetch instructor profile if course has an instructor
+        // Fetch instructor profile if course has an instructor (using public view)
         let profileData = null;
         if (courseData.instructor_id) {
           const { data: instructorProfile } = await supabase
-            .from('profiles')
+            .from('public_profiles')
             .select('full_name')
             .eq('id', courseData.instructor_id)
             .single();

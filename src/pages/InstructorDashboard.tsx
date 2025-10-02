@@ -289,11 +289,11 @@ export default function InstructorDashboard() {
         return;
       }
 
-      // Step 4: Get student profiles for these submissions
+      // Step 4: Get student profiles for these submissions (using public view without emails)
       const studentIds = [...new Set(submissionsData.map(sub => sub.student_id))];
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
+        .from('public_profiles')
+        .select('id, full_name, username')
         .in('id', studentIds);
 
       if (profilesError) {
@@ -318,7 +318,7 @@ export default function InstructorDashboard() {
           },
           profiles: {
             full_name: studentProfile?.full_name || 'Unknown Student',
-            email: studentProfile?.email || ''
+            username: studentProfile?.username || ''
           }
         };
       });

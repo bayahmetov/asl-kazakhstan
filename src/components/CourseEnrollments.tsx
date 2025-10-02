@@ -88,11 +88,11 @@ const CourseEnrollments: React.FC<CourseEnrollmentsProps> = ({ courseId }) => {
         return;
       }
 
-      // Step 2: Get student profiles for these enrollments
+      // Step 2: Get student profiles for these enrollments (using public view without emails)
       const studentIds = enrollmentsData.map(enrollment => enrollment.student_id);
       const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
+        .from('public_profiles')
+        .select('id, full_name, username')
         .in('id', studentIds);
 
       if (profilesError) {
@@ -108,7 +108,7 @@ const CourseEnrollments: React.FC<CourseEnrollmentsProps> = ({ courseId }) => {
           created_at: enrollment.enrolled_at, // Map enrolled_at to created_at for compatibility
           profiles: {
             full_name: profile?.full_name || 'Unknown Student',
-            email: profile?.email || ''
+            username: profile?.username || ''
           }
         };
       });

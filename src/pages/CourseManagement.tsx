@@ -33,7 +33,6 @@ interface CourseEnrollment {
     id: string;
     full_name: string;
     username: string;
-    role: string;
   };
 }
 
@@ -111,12 +110,12 @@ export default function CourseManagement() {
 
       if (enrollmentsError) throw enrollmentsError;
 
-      // Fetch user profiles for enrolled students
+      // Fetch user profiles for enrolled students (using public view without emails)
       if (enrollmentsData && enrollmentsData.length > 0) {
         const studentIds = enrollmentsData.map(enrollment => enrollment.student_id);
         const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, full_name, email, username, role, avatar_url')
+          .from('public_profiles')
+          .select('id, full_name, username, avatar_url')
           .in('id', studentIds);
 
         if (profilesError) throw profilesError;
