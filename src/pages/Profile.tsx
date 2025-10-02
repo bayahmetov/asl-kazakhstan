@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { User, Upload, LogOut } from 'lucide-react';
 import { z } from 'zod';
+import { NotificationPreferences } from '@/components/NotificationPreferences';
 
 const translations = {
   en: {
@@ -350,7 +351,7 @@ export default function Profile() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-2xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-foreground mb-2">{t.profile}</h1>
         </div>
@@ -532,6 +533,9 @@ export default function Profile() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Notification Preferences */}
+        <NotificationPreferences />
 
         {/* Logout */}
         <Card>

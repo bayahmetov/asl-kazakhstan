@@ -1,7 +1,7 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Heart, User, BookOpen, Globe, LogOut } from 'lucide-react';
+import { Menu, X, Heart, User, BookOpen, Globe, LogOut, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -108,6 +108,16 @@ const Navigation = () => {
                 
                 {/* Notification Bell */}
                 <NotificationBell />
+                
+                {/* Admin Dashboard Button */}
+                {profile?.role === 'admin' && (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/dashboard" className="flex items-center gap-2">
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span className="hidden lg:inline">Admin</span>
+                    </Link>
+                  </Button>
+                )}
                 
                 {/* User Profile Dropdown */}
                 <DropdownMenu>
@@ -216,6 +226,16 @@ const Navigation = () => {
               ))}
               {user ? (
                 <div className="space-y-2 mt-4">
+                  {profile?.role === 'admin' && (
+                    <NavLink 
+                      to="/dashboard" 
+                      onClick={() => setIsMenuOpen(false)}
+                      className="w-full flex items-center px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md focus-outline"
+                    >
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Admin Dashboard
+                    </NavLink>
+                  )}
                   <NavLink 
                     to="/profile" 
                     onClick={() => setIsMenuOpen(false)}
