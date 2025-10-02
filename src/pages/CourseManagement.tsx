@@ -79,13 +79,24 @@ export default function CourseManagement() {
 
       if (courseError) throw courseError;
 
-      // Check if user is the instructor for this course
-      if (courseData.instructor_id !== user?.id) {
+      setCourse(courseData);
+
+      // Check if user is an assigned instructor for this course
+      const { data: assignedInstructor } = await supabase
+        .from('course_instructors')
+        .select('id')
+        .eq('course_id', courseId)
+        .eq('instructor_id', user?.id)
+        .maybeSingle();
+
+      // Allow access for course owner OR assigned instructors
+      const isOwner = courseData.instructor_id === user?.id;
+      const isAssignedInstructor = !!assignedInstructor;
+      
+      if (!isOwner && !isAssignedInstructor) {
         navigate('/courses');
         return;
       }
-
-      setCourse(courseData);
 
       // Fetch enrolled students with proper join
       const { data: enrollmentsData, error: enrollmentsError } = await supabase
