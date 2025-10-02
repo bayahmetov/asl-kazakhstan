@@ -139,7 +139,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) {
+    
+    // Clear local state regardless of error (session might already be invalid)
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    
+    // Only show error for unexpected issues, not for already missing sessions
+    if (error && !error.message.includes('session')) {
       toast({
         title: "Error",
         description: error.message,
@@ -151,6 +158,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "You have been successfully signed out"
       });
     }
+    
+    // Redirect to home page
+    window.location.href = '/';
   };
 
   const value = {
