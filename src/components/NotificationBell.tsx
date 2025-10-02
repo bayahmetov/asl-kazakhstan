@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface Notification {
   id: string;
@@ -18,11 +19,13 @@ interface Notification {
   content: string;
   is_read: boolean;
   created_at: string;
+  link?: string | null;
 }
 
 export const NotificationBell = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,22 +50,36 @@ export const NotificationBell = () => {
     }
   };
 
-  const markAsRead = async (notificationId: string) => {
+  const handleNotificationClick = async (notification: Notification) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId);
+      // Mark as read
+      if (!notification.is_read) {
+        const { error } = await supabase
+          .from('notifications')
+          .update({ is_read: true })
+          .eq('id', notification.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      setNotifications(prev => 
-        prev.map(n => 
-          n.id === notificationId ? { ...n, is_read: true } : n
-        )
-      );
+        setNotifications(prev => 
+          prev.map(n => 
+            n.id === notification.id ? { ...n, is_read: true } : n
+          )
+        );
+      }
+
+      // Navigate to link if available
+      if (notification.link) {
+        setIsOpen(false);
+        navigate(notification.link);
+      }
     } catch (error: any) {
-      console.error('Error marking notification as read:', error);
+      console.error('Error handling notification click:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process notification",
+        variant: "destructive",
+      });
     }
   };
 
@@ -191,8 +208,16 @@ export const NotificationBell = () => {
                     <div 
                       className={`p-4 hover:bg-muted cursor-pointer transition-colors ${
                         !notification.is_read ? 'bg-muted/50' : ''
-                      }`}
-                      onClick={() => !notification.is_read && markAsRead(notification.id)}
+                      } ${notification.link ? 'hover:bg-accent' : ''}`}
+                      onClick={() => handleNotificationClick(notification)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleNotificationClick(notification);
+                        }
+                      }}
                     >
                       <div className="flex items-start gap-3">
                         <span className="text-lg">{getNotificationIcon(notification.type)}</span>

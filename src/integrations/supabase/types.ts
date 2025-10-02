@@ -303,6 +303,7 @@ export type Database = {
           created_at: string
           id: string
           is_read: boolean
+          link: string | null
           title: string
           type: string
           updated_at: string
@@ -313,6 +314,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean
+          link?: string | null
           title: string
           type: string
           updated_at?: string
@@ -323,6 +325,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean
+          link?: string | null
           title?: string
           type?: string
           updated_at?: string
