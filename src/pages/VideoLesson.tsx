@@ -15,6 +15,8 @@ const VideoLesson = () => {
   const { profile } = useAuth();
   const [lesson, setLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [loadingVideo, setLoadingVideo] = useState(false);
 
   useEffect(() => {
     const fetchLesson = async () => {
@@ -33,10 +35,40 @@ const VideoLesson = () => {
         }
 
         setLesson(data);
+        
+        // Fetch secure video URL
+        await fetchVideoUrl();
       } catch (error) {
         console.error('Error:', error);
       } finally {
         setLoading(false);
+      }
+    };
+
+    const fetchVideoUrl = async () => {
+      setLoadingVideo(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.error('No active session');
+          return;
+        }
+
+        const { data, error } = await supabase.functions.invoke('get-video-url', {
+          body: { lessonId },
+        });
+
+        if (error) {
+          console.error('Error fetching video URL:', error);
+          return;
+        }
+
+        setVideoUrl(data.signedUrl);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoadingVideo(false);
       }
     };
 
@@ -64,18 +96,6 @@ const VideoLesson = () => {
     );
   }
 
-  const getVideoUrl = () => {
-    if (!lesson.storage_key) return null;
-    
-    const { data } = supabase.storage
-      .from('lesson-videos')
-      .getPublicUrl(lesson.storage_key);
-    
-    return data.publicUrl;
-  };
-
-  const videoUrl = getVideoUrl();
-
   return (
     <div className="container mx-auto px-4 py-8">
       <Button 
@@ -97,11 +117,16 @@ const VideoLesson = () => {
           </CardHeader>
           <CardContent>
             <div className="aspect-video bg-black rounded-lg mb-4 flex items-center justify-center">
-              {videoUrl ? (
+              {loadingVideo ? (
+                <div className="text-white">Loading video...</div>
+              ) : videoUrl ? (
                 <video 
                   controls 
+                  controlsList="nodownload"
+                  disablePictureInPicture
                   className="w-full h-full rounded-lg"
                   src={videoUrl}
+                  onContextMenu={(e) => e.preventDefault()}
                 >
                   Your browser does not support the video tag.
                 </video>
