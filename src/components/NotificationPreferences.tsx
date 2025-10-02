@@ -107,8 +107,20 @@ export const NotificationPreferences = () => {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Loading preferences...</div>
+        <CardHeader>
+          <div className="h-6 w-48 bg-muted animate-pulse rounded"></div>
+          <div className="h-4 w-96 bg-muted animate-pulse rounded mt-2"></div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div className="space-y-2 flex-1">
+                <div className="h-4 w-32 bg-muted animate-pulse rounded"></div>
+                <div className="h-3 w-64 bg-muted animate-pulse rounded"></div>
+              </div>
+              <div className="h-6 w-11 bg-muted animate-pulse rounded-full"></div>
+            </div>
+          ))}
         </CardContent>
       </Card>
     );
