@@ -7,7 +7,7 @@ import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { NotificationBell } from '@/components/NotificationBell';
-import { SearchBar } from '@/components/SearchBar';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -103,9 +103,6 @@ const Navigation = () => {
             
             {user ? (
               <div className="flex items-center gap-2">
-                {/* Search Bar */}
-                <SearchBar />
-                
                 {/* Notification Bell */}
                 <NotificationBell />
                 
@@ -164,9 +161,6 @@ const Navigation = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-2">
-            {/* Mobile Search (for authenticated users) */}
-            {user && <SearchBar />}
-            
             {/* Mobile Notifications (for authenticated users) */}
             {user && <NotificationBell />}
             

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import CreateCourseDialog from '@/components/CreateCourseDialog';
 import { Play, Clock, Users, Star, CheckCircle, LogOut, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SearchBar } from '@/components/SearchBar';
 
 const Courses = () => {
   const navigate = useNavigate();
@@ -113,11 +114,11 @@ const Courses = () => {
 
 
   const CourseCard = ({ course }: { course: any }) => (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full flex flex-col">
+      <CardHeader className="flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-2 flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="outline" className="text-xs">
                 {course.level || 'Beginner'}
               </Badge>
@@ -127,42 +128,43 @@ const Courses = () => {
                 </Badge>
               )}
             </div>
-            <CardTitle className="text-xl group-hover:text-primary transition-colors">
+            <CardTitle className="text-lg sm:text-xl group-hover:text-primary transition-colors line-clamp-2">
               {course.title}
             </CardTitle>
           </div>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground flex-shrink-0">
             <Star className="h-4 w-4 fill-current text-yellow-500" />
-            {course.rating || 4.8}
+            <span className="hidden sm:inline">{course.rating || 4.8}</span>
           </div>
         </div>
-        <p className="text-muted-foreground leading-relaxed">
+        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed line-clamp-3">
           {course.description}
         </p>
       </CardHeader>
       
-      <CardContent>
-        <div className="grid grid-cols-3 gap-4 mb-6 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            {course.totalDuration ? `${Math.floor(course.totalDuration / 3600)}h ${Math.floor((course.totalDuration % 3600) / 60)}m` : '0m'}
+      <CardContent className="pt-0">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6 text-xs sm:text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1">
+            <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="truncate">{course.totalDuration ? `${Math.floor(course.totalDuration / 3600)}h ${Math.floor((course.totalDuration % 3600) / 60)}m` : '0m'}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <BookOpen className="h-4 w-4" />
-            {course.lessonCount} {t('courses.lessons')}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1">
+            <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="truncate">{course.lessonCount} {t('courses.lessons')}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
-            {course.studentCount}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1">
+            <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="truncate">{course.studentCount}</span>
           </div>
         </div>
         
         <Button 
           className="w-full" 
           onClick={() => navigate(`/courses/${course.id}`)}
+          size="sm"
         >
-          <Play className="mr-2 h-4 w-4" />
-          {t('courses.viewDetails')}
+          <Play className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="text-sm">{t('courses.viewDetails')}</span>
         </Button>
       </CardContent>
     </Card>
@@ -179,44 +181,50 @@ const Courses = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
       {/* Header */}
-      <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">{t('courses.title')}</h1>
-              <p className="text-muted-foreground">{t('courses.subtitle')}</p>
+      <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b sticky top-0 z-10">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-1">{t('courses.title')}</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">{t('courses.subtitle')}</p>
             </div>
-            {user && (
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <p className="font-medium">{profile?.full_name || user?.email}</p>
-                  <Badge variant={profile?.role === 'instructor' ? 'default' : 'secondary'}>
-                    {profile?.role || 'student'}
-                  </Badge>
+            
+            <div className="flex items-center gap-3 flex-wrap">
+              <SearchBar />
+              
+              {user && (
+                <>
+                  <div className="text-right hidden sm:block">
+                    <p className="font-medium text-sm">{profile?.full_name || user?.email}</p>
+                    <Badge variant={profile?.role === 'instructor' ? 'default' : 'secondary'} className="text-xs">
+                      {profile?.role || 'student'}
+                    </Badge>
+                  </div>
+                  <Button onClick={signOut} variant="outline" size="sm">
+                    <LogOut className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Sign Out</span>
+                  </Button>
+                </>
+              )}
+              
+              {!user && (
+                <div className="flex items-center gap-2">
+                  <Button onClick={() => navigate('/auth')} variant="outline" size="sm">
+                    Log In
+                  </Button>
+                  <Button onClick={() => navigate('/auth')} size="sm">
+                    Sign Up
+                  </Button>
                 </div>
-                <Button onClick={signOut} variant="outline" size="sm">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
-              </div>
-            )}
-            {!user && (
-              <div className="flex items-center gap-2">
-                <Button onClick={() => navigate('/auth')} variant="outline" size="sm">
-                  Log In
-                </Button>
-                <Button onClick={() => navigate('/auth')} size="sm">
-                  Sign Up
-                </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Course Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {courses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
