@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminMessages } from '@/components/AdminMessages';
 import { AdminUserManagement } from '@/components/AdminUserManagement';
 import { AdminStatistics } from '@/components/AdminStatistics';
+import { AdminLessonAssignments } from '@/components/AdminLessonAssignments';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, Users, BookOpen, BarChart3 } from 'lucide-react';
+import { MessageSquare, Users, BookOpen, BarChart3, UserCog } from 'lucide-react';
 
 export default function Dashboard() {
   const { profile } = useAuth();
@@ -54,6 +55,10 @@ export default function Dashboard() {
                 <Users className="h-4 w-4 mr-2" />
                 User Management
               </TabsTrigger>
+              <TabsTrigger value="assignments">
+                <UserCog className="h-4 w-4 mr-2" />
+                Lesson Assignments
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="messages">
@@ -62,6 +67,10 @@ export default function Dashboard() {
             
             <TabsContent value="users">
               <AdminUserManagement />
+            </TabsContent>
+            
+            <TabsContent value="assignments">
+              <AdminLessonAssignments />
             </TabsContent>
           </Tabs>
         </div>
