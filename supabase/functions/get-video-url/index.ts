@@ -15,6 +15,7 @@ Deno.serve(async (req) => {
     const { lessonId } = await req.json()
 
     if (!lessonId) {
+      console.error('Missing lessonId in request')
       return new Response(
         JSON.stringify({ error: 'Lesson ID is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -24,16 +25,19 @@ Deno.serve(async (req) => {
     // Get the authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
+      console.error('Missing authorization header')
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Create Supabase client with user's token
+    console.log('Creating Supabase client with auth header')
+
+    // Create Supabase client - use the service role for auth verification
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
         global: {
           headers: { Authorization: authHeader },
@@ -41,15 +45,21 @@ Deno.serve(async (req) => {
       }
     )
 
-    // Verify user is authenticated
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+    // Verify user is authenticated by extracting JWT
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+    
+    console.log('Auth check result:', { hasUser: !!user, userError: userError?.message })
     
     if (userError || !user) {
+      console.error('User authentication failed:', userError)
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized', details: userError?.message }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    console.log('User authenticated:', user.id)
 
     // Fetch the lesson to get storage_key
     const { data: lesson, error: lessonError } = await supabaseClient
