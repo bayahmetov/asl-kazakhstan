@@ -595,6 +595,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      is_course_instructor: {
+        Args: { _course_id: string; _user_id: string }
+        Returns: boolean
+      }
       search_content: {
         Args: { search_level?: string; search_query: string }
         Returns: {
