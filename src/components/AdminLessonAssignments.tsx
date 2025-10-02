@@ -7,6 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { BookOpen, UserPlus, X, Loader2 } from 'lucide-react';
 
+interface Course {
+  id: string;
+  title: string;
+}
+
 interface Lesson {
   id: string;
   title: string;
@@ -33,10 +38,13 @@ interface LessonAssignment {
 }
 
 export function AdminLessonAssignments() {
+  const [courses, setCourses] = useState<Course[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [filteredLessons, setFilteredLessons] = useState<Lesson[]>([]);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [assignments, setAssignments] = useState<Record<string, LessonAssignment[]>>({});
   const [loading, setLoading] = useState(true);
+  const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [selectedLesson, setSelectedLesson] = useState<string>('');
   const [selectedInstructor, setSelectedInstructor] = useState<string>('');
   const [assigning, setAssigning] = useState(false);
@@ -48,6 +56,14 @@ export function AdminLessonAssignments() {
   const loadData = async () => {
     setLoading(true);
     try {
+      // Load all courses
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('courses')
+        .select('id, title')
+        .order('title');
+
+      if (coursesError) throw coursesError;
+
       // Load all lessons with course info
       const { data: lessonsData, error: lessonsError } = await supabase
         .from('lessons')
@@ -81,6 +97,7 @@ export function AdminLessonAssignments() {
         groupedAssignments[assignment.lesson_id].push(assignment);
       });
 
+      setCourses(coursesData || []);
       setLessons(lessonsData || []);
       setInstructors(instructorsData || []);
       setAssignments(groupedAssignments);
@@ -88,6 +105,16 @@ export function AdminLessonAssignments() {
       toast.error('Failed to load data: ' + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCourseChange = (courseId: string) => {
+    setSelectedCourse(courseId);
+    setSelectedLesson('');
+    if (courseId) {
+      setFilteredLessons(lessons.filter(lesson => lesson.course_id === courseId));
+    } else {
+      setFilteredLessons([]);
     }
   };
 
@@ -119,8 +146,10 @@ export function AdminLessonAssignments() {
       }
 
       toast.success('Instructor assigned successfully');
+      setSelectedCourse('');
       setSelectedLesson('');
       setSelectedInstructor('');
+      setFilteredLessons([]);
       loadData();
     } catch (error: any) {
       toast.error('Failed to assign instructor: ' + error.message);
@@ -165,15 +194,32 @@ export function AdminLessonAssignments() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select value={selectedLesson} onValueChange={setSelectedLesson}>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Select value={selectedCourse} onValueChange={handleCourseChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a course" />
+              </SelectTrigger>
+              <SelectContent className="bg-background">
+                {courses.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select 
+              value={selectedLesson} 
+              onValueChange={setSelectedLesson}
+              disabled={!selectedCourse}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select a lesson" />
               </SelectTrigger>
               <SelectContent className="bg-background">
-                {lessons.map((lesson) => (
+                {filteredLessons.map((lesson) => (
                   <SelectItem key={lesson.id} value={lesson.id}>
-                    {lesson.title} ({lesson.courses?.title || 'Unknown Course'})
+                    {lesson.title}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -204,7 +250,7 @@ export function AdminLessonAssignments() {
               ) : (
                 <>
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Assign Instructor
+                  Assign
                 </>
               )}
             </Button>
