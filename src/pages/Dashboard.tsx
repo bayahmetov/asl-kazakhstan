@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminMessages } from '@/components/AdminMessages';
 import { AdminUserManagement } from '@/components/AdminUserManagement';
 import { AdminStatistics } from '@/components/AdminStatistics';
-import { AdminLessonAssignments } from '@/components/AdminLessonAssignments';
+import { AdminCourseAssignments } from '@/components/AdminCourseAssignments';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageSquare, Users, BookOpen, BarChart3, UserCog } from 'lucide-react';
 
@@ -57,7 +57,7 @@ export default function Dashboard() {
               </TabsTrigger>
               <TabsTrigger value="assignments">
                 <UserCog className="h-4 w-4 mr-2" />
-                Lesson Assignments
+                Course Assignments
               </TabsTrigger>
             </TabsList>
             
@@ -70,7 +70,7 @@ export default function Dashboard() {
             </TabsContent>
             
             <TabsContent value="assignments">
-              <AdminLessonAssignments />
+              <AdminCourseAssignments />
             </TabsContent>
           </Tabs>
         </div>

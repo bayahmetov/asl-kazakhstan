@@ -10,15 +10,7 @@ import { BookOpen, UserPlus, X, Loader2 } from 'lucide-react';
 interface Course {
   id: string;
   title: string;
-}
-
-interface Lesson {
-  id: string;
-  title: string;
-  course_id: string;
-  courses: {
-    title: string;
-  };
+  description: string;
 }
 
 interface Instructor {
@@ -27,9 +19,9 @@ interface Instructor {
   email: string;
 }
 
-interface LessonAssignment {
+interface CourseAssignment {
   id: string;
-  lesson_id: string;
+  course_id: string;
   instructor_id: string;
   profiles: {
     full_name: string;
@@ -37,15 +29,12 @@ interface LessonAssignment {
   };
 }
 
-export function AdminLessonAssignments() {
+export function AdminCourseAssignments() {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [filteredLessons, setFilteredLessons] = useState<Lesson[]>([]);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
-  const [assignments, setAssignments] = useState<Record<string, LessonAssignment[]>>({});
+  const [assignments, setAssignments] = useState<Record<string, CourseAssignment[]>>({});
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<string>('');
-  const [selectedLesson, setSelectedLesson] = useState<string>('');
   const [selectedInstructor, setSelectedInstructor] = useState<string>('');
   const [assigning, setAssigning] = useState(false);
 
@@ -59,18 +48,10 @@ export function AdminLessonAssignments() {
       // Load all courses
       const { data: coursesData, error: coursesError } = await supabase
         .from('courses')
-        .select('id, title')
+        .select('id, title, description')
         .order('title');
 
       if (coursesError) throw coursesError;
-
-      // Load all lessons with course info
-      const { data: lessonsData, error: lessonsError } = await supabase
-        .from('lessons')
-        .select('id, title, course_id, courses(title)')
-        .order('created_at', { ascending: false });
-
-      if (lessonsError) throw lessonsError;
 
       // Load all instructors
       const { data: instructorsData, error: instructorsError } = await supabase
@@ -83,22 +64,21 @@ export function AdminLessonAssignments() {
 
       // Load all assignments
       const { data: assignmentsData, error: assignmentsError } = await supabase
-        .from('lesson_instructors')
-        .select('id, lesson_id, instructor_id, profiles!instructor_id(full_name, email)');
+        .from('course_instructors')
+        .select('id, course_id, instructor_id, profiles!instructor_id(full_name, email)');
 
       if (assignmentsError) throw assignmentsError;
 
-      // Group assignments by lesson_id
-      const groupedAssignments: Record<string, LessonAssignment[]> = {};
+      // Group assignments by course_id
+      const groupedAssignments: Record<string, CourseAssignment[]> = {};
       assignmentsData?.forEach((assignment: any) => {
-        if (!groupedAssignments[assignment.lesson_id]) {
-          groupedAssignments[assignment.lesson_id] = [];
+        if (!groupedAssignments[assignment.course_id]) {
+          groupedAssignments[assignment.course_id] = [];
         }
-        groupedAssignments[assignment.lesson_id].push(assignment);
+        groupedAssignments[assignment.course_id].push(assignment);
       });
 
       setCourses(coursesData || []);
-      setLessons(lessonsData || []);
       setInstructors(instructorsData || []);
       setAssignments(groupedAssignments);
     } catch (error: any) {
@@ -108,19 +88,9 @@ export function AdminLessonAssignments() {
     }
   };
 
-  const handleCourseChange = (courseId: string) => {
-    setSelectedCourse(courseId);
-    setSelectedLesson('');
-    if (courseId) {
-      setFilteredLessons(lessons.filter(lesson => lesson.course_id === courseId));
-    } else {
-      setFilteredLessons([]);
-    }
-  };
-
   const handleAssignInstructor = async () => {
-    if (!selectedLesson || !selectedInstructor) {
-      toast.error('Please select both a lesson and an instructor');
+    if (!selectedCourse || !selectedInstructor) {
+      toast.error('Please select both a course and an instructor');
       return;
     }
 
@@ -129,16 +99,16 @@ export function AdminLessonAssignments() {
       const { data: { user } } = await supabase.auth.getUser();
 
       const { error } = await supabase
-        .from('lesson_instructors')
+        .from('course_instructors')
         .insert({
-          lesson_id: selectedLesson,
+          course_id: selectedCourse,
           instructor_id: selectedInstructor,
           assigned_by: user?.id
         });
 
       if (error) {
         if (error.code === '23505') {
-          toast.error('This instructor is already assigned to this lesson');
+          toast.error('This instructor is already assigned to this course');
         } else {
           throw error;
         }
@@ -147,9 +117,7 @@ export function AdminLessonAssignments() {
 
       toast.success('Instructor assigned successfully');
       setSelectedCourse('');
-      setSelectedLesson('');
       setSelectedInstructor('');
-      setFilteredLessons([]);
       loadData();
     } catch (error: any) {
       toast.error('Failed to assign instructor: ' + error.message);
@@ -161,7 +129,7 @@ export function AdminLessonAssignments() {
   const handleRemoveAssignment = async (assignmentId: string) => {
     try {
       const { error } = await supabase
-        .from('lesson_instructors')
+        .from('course_instructors')
         .delete()
         .eq('id', assignmentId);
 
@@ -190,12 +158,12 @@ export function AdminLessonAssignments() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            Assign Instructor to Lesson
+            Assign Instructor to Course
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Select value={selectedCourse} onValueChange={handleCourseChange}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Select value={selectedCourse} onValueChange={setSelectedCourse}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a course" />
               </SelectTrigger>
@@ -203,23 +171,6 @@ export function AdminLessonAssignments() {
                 {courses.map((course) => (
                   <SelectItem key={course.id} value={course.id}>
                     {course.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select 
-              value={selectedLesson} 
-              onValueChange={setSelectedLesson}
-              disabled={!selectedCourse}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a lesson" />
-              </SelectTrigger>
-              <SelectContent className="bg-background">
-                {filteredLessons.map((lesson) => (
-                  <SelectItem key={lesson.id} value={lesson.id}>
-                    {lesson.title}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -240,7 +191,7 @@ export function AdminLessonAssignments() {
 
             <Button 
               onClick={handleAssignInstructor} 
-              disabled={assigning || !selectedLesson || !selectedInstructor}
+              disabled={assigning || !selectedCourse || !selectedInstructor}
             >
               {assigning ? (
                 <>
@@ -262,28 +213,30 @@ export function AdminLessonAssignments() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            Lesson Assignments
+            Course Assignments
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {lessons.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No lessons found</p>
+            {courses.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No courses found</p>
             ) : (
-              lessons.map((lesson) => (
-                <div key={lesson.id} className="border rounded-lg p-4 space-y-2">
+              courses.map((course) => (
+                <div key={course.id} className="border rounded-lg p-4 space-y-2">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold">{lesson.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Course: {lesson.courses?.title || 'Unknown'}
-                      </p>
+                      <h3 className="font-semibold">{course.title}</h3>
+                      {course.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-1">
+                          {course.description}
+                        </p>
+                      )}
                     </div>
                   </div>
                   
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {assignments[lesson.id]?.length > 0 ? (
-                      assignments[lesson.id].map((assignment) => (
+                    {assignments[course.id]?.length > 0 ? (
+                      assignments[course.id].map((assignment) => (
                         <Badge key={assignment.id} variant="secondary" className="flex items-center gap-2">
                           {assignment.profiles?.full_name || assignment.profiles?.email}
                           <button

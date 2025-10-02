@@ -49,6 +49,52 @@ export type Database = {
           },
         ]
       }
+      course_instructors: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          course_id: string
+          id: string
+          instructor_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          course_id: string
+          id?: string
+          instructor_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          course_id?: string
+          id?: string
+          instructor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_instructors_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_instructors_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_instructors_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           created_at: string
@@ -86,52 +132,6 @@ export type Database = {
             columns: ["instructor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lesson_instructors: {
-        Row: {
-          assigned_at: string | null
-          assigned_by: string | null
-          id: string
-          instructor_id: string
-          lesson_id: string
-        }
-        Insert: {
-          assigned_at?: string | null
-          assigned_by?: string | null
-          id?: string
-          instructor_id: string
-          lesson_id: string
-        }
-        Update: {
-          assigned_at?: string | null
-          assigned_by?: string | null
-          id?: string
-          instructor_id?: string
-          lesson_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lesson_instructors_assigned_by_fkey"
-            columns: ["assigned_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lesson_instructors_instructor_id_fkey"
-            columns: ["instructor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lesson_instructors_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]
