@@ -73,23 +73,7 @@ const Support = () => {
     category: "general"
   });
 
-  useEffect(() => {
-    fetchTopics();
-    if (user) {
-      fetchTickets();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (selectedTicket) {
-      fetchReplies(selectedTicket.id);
-    } else {
-      setReplies([]);
-      setReplyMessage("");
-      setReplyFile(null);
-    }
-  }, [selectedTicket]);
-
+  // Define all fetch functions before useEffect hooks
   const fetchTopics = async () => {
     try {
       const { data, error } = await supabase
@@ -154,6 +138,24 @@ const Support = () => {
       console.error("Error fetching replies:", error);
     }
   };
+
+  // useEffect hooks after function definitions
+  useEffect(() => {
+    fetchTopics();
+    if (user) {
+      fetchTickets();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (selectedTicket) {
+      fetchReplies(selectedTicket.id);
+    } else {
+      setReplies([]);
+      setReplyMessage("");
+      setReplyFile(null);
+    }
+  }, [selectedTicket]);
 
   const handleCreateTicket = async (e: React.FormEvent) => {
     e.preventDefault();
