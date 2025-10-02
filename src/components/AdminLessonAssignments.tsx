@@ -68,7 +68,7 @@ export function AdminLessonAssignments() {
       // Load all assignments
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('lesson_instructors')
-        .select('id, lesson_id, instructor_id, profiles(full_name, email)');
+        .select('id, lesson_id, instructor_id, profiles!instructor_id(full_name, email)');
 
       if (assignmentsError) throw assignmentsError;
 
