@@ -64,6 +64,15 @@ interface Course {
   };
 }
 
+interface AssignedInstructor {
+  id: string;
+  instructor_id: string;
+  profiles: {
+    full_name: string;
+    email: string;
+  };
+}
+
 interface Lesson {
   id: string;
   title: string;
@@ -82,6 +91,7 @@ export default function CourseDetail() {
   
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [assignedInstructors, setAssignedInstructors] = useState<AssignedInstructor[]>([]);
   const [loading, setLoading] = useState(true);
   
   const t = translations[language];
@@ -131,6 +141,16 @@ export default function CourseDetail() {
         };
 
         setCourse(courseWithProfile);
+
+        // Fetch assigned instructors for this course
+        const { data: assignedInstructorsData, error: assignedError } = await supabase
+          .from('course_instructors')
+          .select('id, instructor_id, profiles!instructor_id(full_name, email)')
+          .eq('course_id', id);
+
+        if (!assignedError && assignedInstructorsData) {
+          setAssignedInstructors(assignedInstructorsData as AssignedInstructor[]);
+        }
 
         // Fetch lessons for this course
         const { data: lessonsData, error: lessonsError } = await supabase
@@ -208,6 +228,10 @@ export default function CourseDetail() {
 
   const isInstructor = profile?.role === 'instructor';
   const isOwner = course.instructor_id === profile?.id;
+  const isAssignedInstructor = assignedInstructors.some(
+    instructor => instructor.instructor_id === profile?.id
+  );
+  const canManageCourse = isOwner || isAssignedInstructor;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -226,17 +250,29 @@ export default function CourseDetail() {
               <div>
                 <CardTitle className="text-3xl mb-2">{course.title}</CardTitle>
                 <p className="text-muted-foreground mb-4">{course.description}</p>
-                <div className="flex items-center gap-4">
-                  <Badge variant="secondary">
-                    {t.instructor}: {course.profiles.full_name}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">
+                      Course Owner: {course.profiles.full_name}
+                    </Badge>
+                  </div>
+                  {assignedInstructors.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium">Assigned Instructors:</span>
+                      {assignedInstructors.map((instructor) => (
+                        <Badge key={instructor.id} variant="outline">
+                          {instructor.profiles?.full_name || instructor.profiles?.email}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <span className="text-sm text-muted-foreground block">
                     {t.createdAt}: {new Date(course.created_at).toLocaleDateString()}
                   </span>
                 </div>
               </div>
               <div className="flex gap-2">
-                {profile?.role === 'instructor' && course.instructor_id === profile?.id && (
+                {profile?.role === 'instructor' && canManageCourse && (
                   <>
                     <Button onClick={handleUploadLesson}>
                       <Upload className="w-4 h-4 mr-2" />
@@ -253,7 +289,7 @@ export default function CourseDetail() {
                       <Settings className="w-4 h-4 mr-2" />
                       Dashboard
                     </Button>
-                    <DeleteCourseDialog courseId={course.id} courseName={course.title} />
+                    {isOwner && <DeleteCourseDialog courseId={course.id} courseName={course.title} />}
                   </>
                 )}
               </div>
@@ -305,7 +341,7 @@ export default function CourseDetail() {
         )}
 
         {/* Course Enrollments for Instructors */}
-        {profile?.role === 'instructor' && course?.instructor_id === profile?.id && (
+        {profile?.role === 'instructor' && canManageCourse && (
           <CourseEnrollments courseId={id!} />
         )}
 
@@ -320,7 +356,7 @@ export default function CourseDetail() {
             {lessons.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-4">{t.noLessons}</p>
-                {profile?.role === 'instructor' && course.instructor_id === profile?.id && (
+                {profile?.role === 'instructor' && canManageCourse && (
                   <Button onClick={handleUploadLesson} variant="outline">
                     <Plus className="w-4 h-4 mr-2" />
                     {t.addLesson}
@@ -351,7 +387,7 @@ export default function CourseDetail() {
                           <Play className="w-4 h-4 mr-2" />
                           {t.playLesson}
                         </Button>
-                        {profile?.role === 'instructor' && course.instructor_id === profile?.id && (
+                        {profile?.role === 'instructor' && canManageCourse && (
                           <DeleteLessonDialog
                             lessonId={lesson.id}
                             lessonTitle={lesson.title}
