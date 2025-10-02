@@ -6,8 +6,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CreateCourseDialog from '@/components/CreateCourseDialog';
-import { Play, Clock, Users, Star, CheckCircle, LogOut, BookOpen } from 'lucide-react';
+import { Play, Clock, Users, Star, CheckCircle, LogOut, BookOpen, Search, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { SearchBar } from '@/components/SearchBar';
 
@@ -18,6 +20,8 @@ const Courses = () => {
   const { toast } = useToast();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [levelFilter, setLevelFilter] = useState('all');
   
   // Handle case where auth context might not be available for public access
   const user = auth?.user || null;
@@ -170,6 +174,18 @@ const Courses = () => {
     </Card>
   );
 
+  // Filter courses based on search query and level
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = searchQuery === '' || 
+      course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesLevel = levelFilter === 'all' || course.level === levelFilter;
+    
+    return matchesSearch && matchesLevel;
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -223,19 +239,78 @@ const Courses = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Search and Filter Section */}
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search courses by title, description, or tags..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-10"
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setSearchQuery('')}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            
+            <Select value={levelFilter} onValueChange={setLevelFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Filter by level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="beginner">Beginner</SelectItem>
+                <SelectItem value="intermediate">Intermediate</SelectItem>
+                <SelectItem value="advanced">Advanced</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {searchQuery && (
+            <div className="text-sm text-muted-foreground">
+              Found {filteredCourses.length} course{filteredCourses.length !== 1 ? 's' : ''} matching "{searchQuery}"
+            </div>
+          )}
+        </div>
+
         {/* Course Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          {courses.map((course) => (
+          {filteredCourses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
         </div>
 
         {/* Empty State */}
-        {courses.length === 0 && !loading && (
+        {filteredCourses.length === 0 && !loading && (
           <div className="text-center py-12">
             <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-muted-foreground mb-2">No courses available</h2>
-            <p className="text-muted-foreground">Check back later for new courses!</p>
+            <h2 className="text-2xl font-bold text-muted-foreground mb-2">
+              {searchQuery || levelFilter !== 'all' ? 'No courses found' : 'No courses available'}
+            </h2>
+            <p className="text-muted-foreground">
+              {searchQuery || levelFilter !== 'all' ? 'Try adjusting your search or filters' : 'Check back later for new courses!'}
+            </p>
+            {(searchQuery || levelFilter !== 'all') && (
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => {
+                  setSearchQuery('');
+                  setLevelFilter('all');
+                }}
+              >
+                Clear filters
+              </Button>
+            )}
           </div>
         )}
 
