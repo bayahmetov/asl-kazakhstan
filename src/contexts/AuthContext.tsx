@@ -35,33 +35,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state listener
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile and role
-          Promise.all([
-            supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single(),
-            supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', session.user.id)
-              .limit(1)
-              .maybeSingle()
-          ]).then(([profileResult, roleResult]) => {
-            setProfile({
-              ...profileResult.data,
-              role: roleResult.data?.role || 'student'
+          // Defer profile fetching to avoid blocking auth state
+          setTimeout(() => {
+            Promise.all([
+              supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single(),
+              supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', session.user.id)
+                .limit(1)
+                .maybeSingle()
+            ]).then(([profileResult, roleResult]) => {
+              setProfile({
+                ...profileResult.data,
+                role: roleResult.data?.role || 'student'
+              });
+              setLoading(false);
+            }).catch(() => {
+              setLoading(false);
             });
-            setLoading(false);
-          });
+          }, 0);
         } else {
           setProfile(null);
           setLoading(false);
@@ -69,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Get initial session
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
