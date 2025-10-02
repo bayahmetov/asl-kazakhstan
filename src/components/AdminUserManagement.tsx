@@ -34,18 +34,38 @@ export const AdminUserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      setIsLoading(true);
+      
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (profilesError) throw profilesError;
+
+      // Fetch all user roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Create a map of user_id to role
+      const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
+
+      // Combine profile data with roles
+      const usersWithRoles = profilesData?.map(profile => ({
+        ...profile,
+        role: rolesMap.get(profile.id) || 'student'
+      })) || [];
+
+      setUsers(usersWithRoles);
     } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({
         title: "Error",
-        description: "Failed to load users",
+        description: "Failed to load users. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -55,25 +75,47 @@ export const AdminUserManagement = () => {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('id', userId);
+      // First, get the current role
+      const { data: currentRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .limit(1)
+        .maybeSingle();
 
-      if (error) throw error;
+      // Delete the old role if it exists
+      if (currentRole) {
+        const { error: deleteError } = await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', userId)
+          .eq('role', currentRole.role);
+
+        if (deleteError) throw deleteError;
+      }
+
+      // Insert the new role
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: newRole as 'admin' | 'instructor' | 'student',
+          assigned_by: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (insertError) throw insertError;
 
       toast({
-        title: "Success",
-        description: `User role updated to ${newRole}`,
+        title: "Role updated",
+        description: "User role has been successfully updated.",
       });
 
       fetchUsers();
-      setSelectedUser(null);
-    } catch (error: any) {
-      console.error('Error updating role:', error);
+    } catch (error) {
+      console.error('Error updating user role:', error);
       toast({
         title: "Error",
-        description: "Failed to update user role",
+        description: "Failed to update user role. Please try again.",
         variant: "destructive",
       });
     }

@@ -82,11 +82,31 @@ const translations = {
   }
 };
 
-const authSchema = z.object({
-  email: z.string().email('Invalid email').min(1, 'Email is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  fullName: z.string().min(1, 'Full name is required').optional(),
-  
+const signUpSchema = z.object({
+  email: z.string()
+    .trim()
+    .email("Please enter a valid email address")
+    .max(255, "Email must be less than 255 characters"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password must be less than 72 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
+  fullName: z.string()
+    .trim()
+    .min(2, "Full name must be at least 2 characters")
+    .max(100, "Full name must be less than 100 characters"),
+});
+
+const signInSchema = z.object({
+  email: z.string()
+    .trim()
+    .email("Please enter a valid email address")
+    .max(255, "Email must be less than 255 characters"),
+  password: z.string()
+    .min(1, "Password is required")
+    .max(72, "Password must be less than 72 characters"),
 });
 
 export default function Auth() {
@@ -118,7 +138,8 @@ export default function Auth() {
         ? { email, password, fullName }
         : { email, password };
       
-      authSchema.parse(data);
+      const schema = isSignUp ? signUpSchema : signInSchema;
+      schema.parse(data);
       setErrors({});
       return true;
     } catch (error) {

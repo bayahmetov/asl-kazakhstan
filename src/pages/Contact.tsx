@@ -10,6 +10,27 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { z } from 'zod';
+
+const contactSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(1, "Name is required")
+    .max(100, "Name must be less than 100 characters"),
+  email: z.string()
+    .trim()
+    .email("Invalid email address")
+    .max(255, "Email must be less than 255 characters"),
+  subject: z.string()
+    .trim()
+    .min(1, "Subject is required")
+    .max(200, "Subject must be less than 200 characters"),
+  message: z.string()
+    .trim()
+    .min(10, "Message must be at least 10 characters")
+    .max(5000, "Message must be less than 5000 characters"),
+  inquiryType: z.string().optional(),
+});
 
 const Contact = () => {
   const { user } = useAuth();
@@ -31,13 +52,17 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
+    // Validate with zod schema
+    try {
+      contactSchema.parse(formData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.issues[0].message,
+          variant: "destructive",
+        });
+      }
       return;
     }
 
@@ -74,7 +99,6 @@ const Contact = () => {
       });
 
     } catch (error: any) {
-      console.error('Error sending message:', error);
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",

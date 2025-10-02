@@ -3,6 +3,10 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface UserRole {
+  role: string;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -38,16 +42,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile immediately (no setTimeout needed)
-          supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-            .then(({ data }) => {
-              setProfile(data);
-              setLoading(false);
+          // Fetch user profile and role
+          Promise.all([
+            supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single(),
+            supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', session.user.id)
+              .limit(1)
+              .maybeSingle()
+          ]).then(([profileResult, roleResult]) => {
+            setProfile({
+              ...profileResult.data,
+              role: roleResult.data?.role || 'student'
             });
+            setLoading(false);
+          });
         } else {
           setProfile(null);
           setLoading(false);
