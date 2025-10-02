@@ -116,6 +116,17 @@ const Courses = () => {
     };
   }, []);
 
+  // Filter courses based on search query and level
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = searchQuery === '' || 
+      course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesLevel = levelFilter === 'all' || course.level === levelFilter;
+    
+    return matchesSearch && matchesLevel;
+  });
 
   const CourseCard = ({ course }: { course: any }) => (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full flex flex-col">
@@ -173,18 +184,6 @@ const Courses = () => {
       </CardContent>
     </Card>
   );
-
-  // Filter courses based on search query and level
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = searchQuery === '' || 
-      course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesLevel = levelFilter === 'all' || course.level === levelFilter;
-    
-    return matchesSearch && matchesLevel;
-  });
 
   if (loading) {
     return (
