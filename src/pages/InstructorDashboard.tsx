@@ -215,19 +215,37 @@ export default function InstructorDashboard() {
     setError(null);
 
     try {
-      // Step 1: Get instructor's courses
-      const { data: instructorCourses, error: coursesError } = await supabase
+      // Step 1: Get instructor's own courses
+      const { data: ownCourses, error: ownCoursesError } = await supabase
         .from('courses')
         .select('id, title')
         .eq('instructor_id', profile.id);
 
-      if (coursesError) {
-        console.error('Error fetching courses:', coursesError);
+      if (ownCoursesError) {
+        console.error('Error fetching own courses:', ownCoursesError);
         setError('Failed to load courses');
         return;
       }
 
-      if (!instructorCourses || instructorCourses.length === 0) {
+      // Step 2: Get assigned courses
+      const { data: assignedCourses, error: assignedCoursesError } = await supabase
+        .from('course_instructors')
+        .select('course_id, courses(id, title)')
+        .eq('instructor_id', profile.id);
+
+      if (assignedCoursesError) {
+        console.error('Error fetching assigned courses:', assignedCoursesError);
+        setError('Failed to load assigned courses');
+        return;
+      }
+
+      // Combine both sets of courses
+      const instructorCourses = [
+        ...(ownCourses || []),
+        ...(assignedCourses?.map(ac => ac.courses).filter(Boolean) || [])
+      ];
+
+      if (instructorCourses.length === 0) {
         setSubmissions([]);
         return;
       }
