@@ -413,6 +413,10 @@ export type Database = {
       support_replies: {
         Row: {
           created_at: string
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
           id: string
           is_admin_reply: boolean
           message: string
@@ -421,6 +425,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           is_admin_reply?: boolean
           message: string
@@ -429,6 +437,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           is_admin_reply?: boolean
           message?: string
@@ -478,6 +490,36 @@ export type Database = {
           subject?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      support_topics: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          display_order: number | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
