@@ -95,6 +95,7 @@ export default function CourseDetail() {
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [assignedInstructors, setAssignedInstructors] = useState<AssignedInstructor[]>([]);
+  const [enrollmentCount, setEnrollmentCount] = useState(0);
   const [loading, setLoading] = useState(true);
   
   const t = translations[language];
@@ -169,6 +170,14 @@ export default function CourseDetail() {
         }
 
         setLessons(lessonsData || []);
+
+        // Fetch enrollment count for this course
+        const { count: enrollCount } = await supabase
+          .from('course_enrollments')
+          .select('*', { count: 'exact', head: true })
+          .eq('course_id', id);
+
+        setEnrollmentCount(enrollCount || 0);
       } catch (error) {
         toast({
           title: "Error",
@@ -340,7 +349,7 @@ export default function CourseDetail() {
                 <Users className="h-5 w-5 text-primary" />
                 <span className="font-medium">Students</span>
               </div>
-              <p className="text-2xl font-bold">0</p>
+              <p className="text-2xl font-bold">{enrollmentCount}</p>
             </CardContent>
           </Card>
         </div>
