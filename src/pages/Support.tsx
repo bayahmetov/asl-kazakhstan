@@ -26,6 +26,11 @@ interface SupportTicket {
   category?: string;
   created_at: string;
   updated_at: string;
+  recipient_id?: string;
+  file_url?: string;
+  file_name?: string;
+  file_type?: string;
+  file_size?: number;
 }
 
 interface TicketReply {
@@ -64,13 +69,18 @@ const Support = () => {
   const [replyFile, setReplyFile] = useState<File | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isInstructor, setIsInstructor] = useState(false);
+  const [potentialRecipients, setPotentialRecipients] = useState<Array<{ id: string; full_name: string; role: string }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const createFileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     subject: "",
     message: "",
     priority: "normal",
-    category: "general"
+    category: "technical",
+    recipientId: "",
+    file: null as File | null
   });
 
   const fetchTopics = async () => {
@@ -140,8 +150,47 @@ const Support = () => {
     fetchTopics();
     if (user) {
       fetchTickets();
+      checkUserRole();
     }
   }, [user]);
+
+  const checkUserRole = async () => {
+    if (!user) return;
+    
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'instructor')
+      .maybeSingle();
+    
+    const userIsInstructor = !!roleData;
+    setIsInstructor(userIsInstructor);
+    
+    if (userIsInstructor) {
+      // Fetch admins and other instructors
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['admin', 'instructor']);
+      
+      if (rolesData) {
+        const userIds = rolesData.map(r => r.user_id).filter(id => id !== user.id);
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', userIds);
+        
+        if (profilesData) {
+          const enriched = profilesData.map(p => ({
+            ...p,
+            role: rolesData.find(r => r.user_id === p.id)?.role || 'instructor'
+          }));
+          setPotentialRecipients(enriched);
+        }
+      }
+    }
+  };
 
   useEffect(() => {
     if (selectedTicket) {
@@ -158,11 +207,42 @@ const Support = () => {
     if (!user) return;
 
     try {
+      let fileUrl = null;
+      let fileName = null;
+      let fileType = null;
+      let fileSize = null;
+
+      if (formData.file) {
+        const filePath = `${user.id}/${Date.now()}-${formData.file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("support-attachments")
+          .upload(filePath, formData.file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("support-attachments")
+          .getPublicUrl(filePath);
+
+        fileUrl = publicUrl;
+        fileName = formData.file.name;
+        fileType = formData.file.type;
+        fileSize = formData.file.size;
+      }
+
       const { error } = await supabase
         .from("support_tickets")
         .insert({
           user_id: user.id,
-          ...formData,
+          subject: formData.subject,
+          message: formData.message,
+          priority: formData.priority,
+          category: formData.category,
+          recipient_id: formData.recipientId || null,
+          file_url: fileUrl,
+          file_name: fileName,
+          file_type: fileType,
+          file_size: fileSize,
         });
 
       if (error) throw error;
@@ -176,8 +256,11 @@ const Support = () => {
         subject: "",
         message: "",
         priority: "normal",
-        category: "general"
+        category: "technical",
+        recipientId: "",
+        file: null
       });
+      if (createFileInputRef.current) createFileInputRef.current.value = "";
       setIsCreateDialogOpen(false);
       fetchTickets();
     } catch (error) {
@@ -187,6 +270,21 @@ const Support = () => {
         description: "Failed to create ticket",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleCreateFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "File size must be less than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setFormData({ ...formData, file });
     }
   };
 
@@ -606,14 +704,36 @@ const Support = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="general">General</SelectItem>
                             <SelectItem value="technical">Technical</SelectItem>
                             <SelectItem value="billing">Billing</SelectItem>
+                            <SelectItem value="course">Course</SelectItem>
                             <SelectItem value="account">Account</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
+                    {isInstructor && potentialRecipients.length > 0 && (
+                      <div className="space-y-2">
+                        <Label htmlFor="recipient">Send To (Optional)</Label>
+                        <Select
+                          value={formData.recipientId}
+                          onValueChange={(value) => setFormData({ ...formData, recipientId: value })}
+                        >
+                          <SelectTrigger id="recipient">
+                            <SelectValue placeholder="Admin (default)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Admin (default)</SelectItem>
+                            {potentialRecipients.map((recipient) => (
+                              <SelectItem key={recipient.id} value={recipient.id}>
+                                {recipient.full_name} ({recipient.role})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <Label htmlFor="message">Message</Label>
                       <Textarea
@@ -624,6 +744,37 @@ const Support = () => {
                         rows={6}
                         required
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="file">Attachment (Optional)</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="file"
+                          type="file"
+                          ref={createFileInputRef}
+                          onChange={handleCreateFileChange}
+                          className="cursor-pointer"
+                        />
+                        {formData.file && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setFormData({ ...formData, file: null });
+                              if (createFileInputRef.current) createFileInputRef.current.value = "";
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      {formData.file && (
+                        <p className="text-sm text-muted-foreground">
+                          {formData.file.name} ({formatFileSize(formData.file.size)})
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">Max file size: 10MB</p>
                     </div>
                     <div className="flex justify-end gap-2">
                       <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
@@ -833,6 +984,22 @@ const Support = () => {
                     <div className="flex-1">
                       <p className="text-sm font-medium mb-1">You</p>
                       <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedTicket?.message}</p>
+                      {selectedTicket?.file_url && (
+                        <div className="mt-3">
+                          {renderFileAttachment({
+                            id: 'ticket-file',
+                            ticket_id: selectedTicket.id,
+                            user_id: user?.id || '',
+                            message: '',
+                            is_admin_reply: false,
+                            created_at: selectedTicket.created_at,
+                            file_url: selectedTicket.file_url,
+                            file_name: selectedTicket.file_name,
+                            file_type: selectedTicket.file_type,
+                            file_size: selectedTicket.file_size
+                          })}
+                        </div>
+                      )}
                       <p className="text-xs text-muted-foreground mt-2">
                         {selectedTicket && formatDistanceToNow(new Date(selectedTicket.created_at), { addSuffix: true })}
                       </p>

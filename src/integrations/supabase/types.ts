@@ -540,9 +540,14 @@ export type Database = {
         Row: {
           category: string | null
           created_at: string
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
           id: string
           message: string
           priority: string
+          recipient_id: string | null
           status: string
           subject: string
           updated_at: string
@@ -551,9 +556,14 @@ export type Database = {
         Insert: {
           category?: string | null
           created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           message: string
           priority?: string
+          recipient_id?: string | null
           status?: string
           subject: string
           updated_at?: string
@@ -562,9 +572,14 @@ export type Database = {
         Update: {
           category?: string | null
           created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           message?: string
           priority?: string
+          recipient_id?: string | null
           status?: string
           subject?: string
           updated_at?: string
