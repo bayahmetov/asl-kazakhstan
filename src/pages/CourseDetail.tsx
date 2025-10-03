@@ -85,9 +85,12 @@ interface Lesson {
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const auth = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
+  
+  // Handle case where auth context might not be available for public access
+  const profile = auth?.profile || null;
   
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -181,6 +184,16 @@ export default function CourseDetail() {
   }, [id, toast]);
 
   const handlePlayLesson = (lessonId: string) => {
+    // Require authentication to play lessons
+    if (!auth?.user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to access lesson content",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
     navigate(`/courses/${id}/lesson/${lessonId}`);
   };
 
@@ -380,9 +393,10 @@ export default function CourseDetail() {
                         <Button 
                           onClick={() => handlePlayLesson(lesson.id)}
                           size="sm"
+                          variant={!auth?.user ? "outline" : "default"}
                         >
                           <Play className="w-4 h-4 mr-2" />
-                          {t.playLesson}
+                          {!auth?.user ? 'Login to Watch' : t.playLesson}
                         </Button>
                         {profile?.role === 'instructor' && canManageCourse && (
                           <DeleteLessonDialog
