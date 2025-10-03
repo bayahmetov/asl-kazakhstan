@@ -26,8 +26,7 @@ const Navigation = () => {
     { to: '/', label: t('nav.home'), icon: Heart },
     { to: '/courses', label: t('nav.courses'), icon: BookOpen },
     { to: '/about', label: t('nav.about') },
-    { to: '/contact', label: t('nav.contact') },
-    { to: '/support', label: 'Support' },
+    { to: '/contact', label: 'Support' },
   ];
 
   const languages = [

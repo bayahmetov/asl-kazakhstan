@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { MessageCircle, Clock, CheckCircle, AlertCircle, Send, FileText, Paperclip, Download, Trash2, X, BookOpen } from "lucide-react";
+import { MessageCircle, Clock, CheckCircle, AlertCircle, Send, FileText, Paperclip, Download, Trash2, X, BookOpen, HelpCircle, LifeBuoy, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { formatDistanceToNow } from "date-fns";
@@ -73,7 +73,6 @@ const Support = () => {
     category: "general"
   });
 
-  // Define all fetch functions before useEffect hooks
   const fetchTopics = async () => {
     try {
       const { data, error } = await supabase
@@ -120,14 +119,12 @@ const Support = () => {
 
       if (error) throw error;
       
-      // Fetch user profiles separately
       const userIds = [...new Set(data?.map(r => r.user_id) || [])];
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('id, full_name, role')
         .in('id', userIds);
       
-      // Combine data
       const enrichedReplies = data?.map(reply => ({
         ...reply,
         profiles: profilesData?.find(p => p.id === reply.user_id)
@@ -139,7 +136,6 @@ const Support = () => {
     }
   };
 
-  // useEffect hooks after function definitions
   useEffect(() => {
     fetchTopics();
     if (user) {
@@ -203,7 +199,6 @@ const Support = () => {
       let fileType = null;
       let fileSize = null;
 
-      // Upload file if attached
       if (replyFile) {
         const filePath = `${user?.id}/${Date.now()}-${replyFile.name}`;
         const { error: uploadError } = await supabase.storage
@@ -286,7 +281,6 @@ const Support = () => {
 
   const handleDeleteTicket = async (ticketId: string) => {
     try {
-      // Delete all replies first
       const { error: repliesError } = await supabase
         .from("support_replies")
         .delete()
@@ -294,7 +288,6 @@ const Support = () => {
 
       if (repliesError) throw repliesError;
 
-      // Delete the ticket
       const { error: ticketError } = await supabase
         .from("support_tickets")
         .delete()
@@ -325,7 +318,6 @@ const Support = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Limit file size to 10MB
       if (file.size > 10 * 1024 * 1024) {
         toast({
           title: "Error",
@@ -361,28 +353,28 @@ const Support = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "open":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+        return "border-primary/50 bg-primary/5 text-primary";
       case "in_progress":
-        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+        return "border-yellow-500/50 bg-yellow-500/5 text-yellow-600 dark:text-yellow-400";
       case "closed":
-        return "bg-green-500/10 text-green-500 border-green-500/20";
+        return "border-green-500/50 bg-green-500/5 text-green-600 dark:text-green-400";
       default:
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
+        return "border-muted-foreground/50 bg-muted/5 text-muted-foreground";
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "low":
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
+        return "border-muted-foreground/50 bg-muted/5 text-muted-foreground";
       case "normal":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+        return "border-primary/50 bg-primary/5 text-primary";
       case "high":
-        return "bg-orange-500/10 text-orange-500 border-orange-500/20";
+        return "border-orange-500/50 bg-orange-500/5 text-orange-600 dark:text-orange-400";
       case "urgent":
-        return "bg-red-500/10 text-red-500 border-red-500/20";
+        return "border-destructive/50 bg-destructive/5 text-destructive";
       default:
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
+        return "border-muted-foreground/50 bg-muted/5 text-muted-foreground";
     }
   };
 
@@ -393,7 +385,7 @@ const Support = () => {
     const isVideo = reply.file_type?.startsWith("video/");
 
     return (
-      <div className="mt-2 p-3 bg-muted rounded-lg">
+      <div className="mt-2 p-3 bg-muted/50 rounded-lg border border-border">
         {isImage && (
           <img 
             src={reply.file_url} 
@@ -422,7 +414,6 @@ const Support = () => {
     );
   };
 
-  // Group topics by category
   const topicsByCategory = topics.reduce((acc, topic) => {
     const category = topic.category || "General";
     if (!acc[category]) acc[category] = [];
@@ -432,14 +423,21 @@ const Support = () => {
 
   if (!user) {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <Card>
-          <CardContent className="text-center py-12">
-            <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Authentication Required</h2>
-            <p className="text-muted-foreground">Please log in to access the support center</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+        <div className="container mx-auto py-16 px-4">
+          <Card className="max-w-2xl mx-auto border-border/50 bg-card/50 backdrop-blur">
+            <CardContent className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+                <LifeBuoy className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Authentication Required</h2>
+              <p className="text-muted-foreground mb-6">Please log in to access the support center and manage your tickets</p>
+              <Button size="lg" asChild>
+                <a href="/auth">Sign In</a>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -448,447 +446,501 @@ const Support = () => {
   const closedTickets = tickets.filter(t => t.status === 'closed');
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Support Center</h1>
-        <p className="text-muted-foreground">Get help and browse common questions</p>
-      </div>
-
-      {/* FAQ Section */}
-      <Card className="mb-8">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            <CardTitle>Frequently Asked Questions</CardTitle>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      <div className="container mx-auto py-12 px-4 max-w-7xl">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+            <LifeBuoy className="h-8 w-8 text-primary" />
           </div>
-          <CardDescription>
-            Browse common topics and questions before creating a ticket
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Accordion type="single" collapsible className="w-full">
-            {Object.entries(topicsByCategory).map(([category, categoryTopics]) => (
-              <div key={category} className="mb-4">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-2 px-4">
-                  {category}
-                </h3>
-                {categoryTopics.map((topic) => (
-                  <AccordionItem key={topic.id} value={topic.id}>
-                    <AccordionTrigger className="text-left">
-                      {topic.title}
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <p className="text-muted-foreground">{topic.content}</p>
-                    </AccordionContent>
-                  </AccordionItem>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            Support Center
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Get help quickly with our knowledge base or create a support ticket for personalized assistance
+          </p>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card className="border-border/50 bg-card/50 backdrop-blur">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <MessageCircle className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{openTickets.length}</p>
+                  <p className="text-sm text-muted-foreground">Open Tickets</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{closedTickets.length}</p>
+                  <p className="text-sm text-muted-foreground">Resolved</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <BookOpen className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{topics.length}</p>
+                  <p className="text-sm text-muted-foreground">FAQ Articles</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* FAQ Section */}
+        <Card className="mb-8 border-border/50 bg-card/50 backdrop-blur">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <HelpCircle className="h-5 w-5 text-primary" />
+              <CardTitle>Frequently Asked Questions</CardTitle>
+            </div>
+            <CardDescription>
+              Find answers to common questions before creating a support ticket
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {topics.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>No FAQ articles available yet</p>
+              </div>
+            ) : (
+              <Accordion type="single" collapsible className="w-full">
+                {Object.entries(topicsByCategory).map(([category, categoryTopics]) => (
+                  <div key={category} className="mb-4 last:mb-0">
+                    <h3 className="text-sm font-semibold text-primary mb-2 px-4">
+                      {category}
+                    </h3>
+                    {categoryTopics.map((topic) => (
+                      <AccordionItem key={topic.id} value={topic.id} className="border-border/50">
+                        <AccordionTrigger className="text-left hover:text-primary transition-colors">
+                          {topic.title}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <p className="text-muted-foreground leading-relaxed">{topic.content}</p>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </div>
+                ))}
+              </Accordion>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Tickets Section */}
+        <Card className="border-border/50 bg-card/50 backdrop-blur">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Mail className="h-5 w-5 text-primary" />
+                <CardTitle>My Support Tickets</CardTitle>
+              </div>
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <MessageCircle className="h-4 w-4" />
+                    Create Ticket
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Create Support Ticket</DialogTitle>
+                    <DialogDescription>
+                      Describe your issue and we'll get back to you as soon as possible
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateTicket} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="subject">Subject</Label>
+                      <Input
+                        id="subject"
+                        placeholder="Brief description of your issue"
+                        value={formData.subject}
+                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="priority">Priority</Label>
+                        <Select
+                          value={formData.priority}
+                          onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                        >
+                          <SelectTrigger id="priority">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Low</SelectItem>
+                            <SelectItem value="normal">Normal</SelectItem>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="urgent">Urgent</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="category">Category</Label>
+                        <Select
+                          value={formData.category}
+                          onValueChange={(value) => setFormData({ ...formData, category: value })}
+                        >
+                          <SelectTrigger id="category">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="general">General</SelectItem>
+                            <SelectItem value="technical">Technical</SelectItem>
+                            <SelectItem value="billing">Billing</SelectItem>
+                            <SelectItem value="account">Account</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="message">Message</Label>
+                      <Textarea
+                        id="message"
+                        placeholder="Provide detailed information about your issue"
+                        value={formData.message}
+                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                        rows={6}
+                        required
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit">Create Ticket</Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <CardDescription>
+              Track and manage all your support requests
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground mt-4">Loading tickets...</p>
+              </div>
+            ) : tickets.length === 0 ? (
+              <div className="text-center py-12">
+                <MessageCircle className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No tickets yet</h3>
+                <p className="text-muted-foreground mb-6">Create your first support ticket to get help</p>
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Create First Ticket
+                </Button>
+              </div>
+            ) : (
+              <Tabs defaultValue="open" className="w-full">
+                <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+                  <TabsTrigger value="open" className="gap-2">
+                    <Clock className="h-4 w-4" />
+                    Open ({openTickets.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="closed" className="gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Closed ({closedTickets.length})
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="open" className="space-y-3">
+                  {openTickets.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <CheckCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p>All caught up! No open tickets.</p>
+                    </div>
+                  ) : (
+                    openTickets.map((ticket) => (
+                      <Card
+                        key={ticket.id}
+                        className="cursor-pointer hover:shadow-md transition-all duration-200 border-border/50 hover:border-primary/50"
+                        onClick={() => {
+                          setSelectedTicket(ticket);
+                          setIsDetailDialogOpen(true);
+                        }}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold mb-2 truncate">{ticket.subject}</h3>
+                              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                {ticket.message}
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                <Badge variant="outline" className={getStatusColor(ticket.status)}>
+                                  {getStatusIcon(ticket.status)}
+                                  <span className="ml-1 capitalize">{ticket.status.replace('_', ' ')}</span>
+                                </Badge>
+                                <Badge variant="outline" className={getPriorityColor(ticket.priority)}>
+                                  <span className="capitalize">{ticket.priority}</span>
+                                </Badge>
+                                {ticket.category && (
+                                  <Badge variant="outline" className="border-muted-foreground/50 bg-muted/5">
+                                    {ticket.category}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-xs text-muted-foreground text-right shrink-0">
+                              {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="closed" className="space-y-3">
+                  {closedTickets.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p>No closed tickets yet</p>
+                    </div>
+                  ) : (
+                    closedTickets.map((ticket) => (
+                      <Card
+                        key={ticket.id}
+                        className="cursor-pointer hover:shadow-md transition-all duration-200 border-border/50 hover:border-primary/50 opacity-75"
+                        onClick={() => {
+                          setSelectedTicket(ticket);
+                          setIsDetailDialogOpen(true);
+                        }}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold mb-2 truncate">{ticket.subject}</h3>
+                              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                {ticket.message}
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                <Badge variant="outline" className={getStatusColor(ticket.status)}>
+                                  {getStatusIcon(ticket.status)}
+                                  <span className="ml-1">Closed</span>
+                                </Badge>
+                                <Badge variant="outline" className={getPriorityColor(ticket.priority)}>
+                                  <span className="capitalize">{ticket.priority}</span>
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="text-xs text-muted-foreground text-right shrink-0">
+                              {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </TabsContent>
+              </Tabs>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Ticket Detail Dialog */}
+        <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+          <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
+            <DialogHeader>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <DialogTitle className="text-xl mb-2">{selectedTicket?.subject}</DialogTitle>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className={getStatusColor(selectedTicket?.status || '')}>
+                      {getStatusIcon(selectedTicket?.status || '')}
+                      <span className="ml-1 capitalize">{selectedTicket?.status.replace('_', ' ')}</span>
+                    </Badge>
+                    <Badge variant="outline" className={getPriorityColor(selectedTicket?.priority || '')}>
+                      <span className="capitalize">{selectedTicket?.priority}</span>
+                    </Badge>
+                    {selectedTicket?.category && (
+                      <Badge variant="outline">{selectedTicket.category}</Badge>
+                    )}
+                  </div>
+                </div>
+                {selectedTicket?.status !== 'closed' && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => selectedTicket && handleCloseTicket(selectedTicket.id)}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Close
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Ticket?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your ticket and all replies.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => selectedTicket && handleDeleteTicket(selectedTicket.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
+              </div>
+            </DialogHeader>
+
+            <ScrollArea className="flex-1 pr-4">
+              <div className="space-y-4">
+                {/* Original Message */}
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <MessageCircle className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium mb-1">You</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedTicket?.message}</p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {selectedTicket && formatDistanceToNow(new Date(selectedTicket.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Replies */}
+                {replies.map((reply) => (
+                  <div
+                    key={reply.id}
+                    className={`p-4 rounded-lg border ${
+                      reply.is_admin_reply
+                        ? 'bg-primary/5 border-primary/20'
+                        : 'bg-muted/50 border-border'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        reply.is_admin_reply ? 'bg-primary/20' : 'bg-muted'
+                      }`}>
+                        {reply.is_admin_reply ? (
+                          <LifeBuoy className="h-4 w-4 text-primary" />
+                        ) : (
+                          <MessageCircle className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-medium">
+                            {reply.is_admin_reply ? 'Support Team' : 'You'}
+                          </p>
+                          {reply.is_admin_reply && (
+                            <Badge variant="secondary" className="text-xs">Admin</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{reply.message}</p>
+                        {renderFileAttachment(reply)}
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
-            ))}
-          </Accordion>
-        </CardContent>
-      </Card>
+            </ScrollArea>
 
-      {/* Tickets Section */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">My Tickets</h2>
-        
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Create New Ticket
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create Support Ticket</DialogTitle>
-              <DialogDescription>
-                Describe your issue and we'll get back to you as soon as possible
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreateTicket} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Priority</Label>
-                  <Select value={formData.priority} onValueChange={(value) => setFormData({...formData, priority: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Category</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="technical">Technical</SelectItem>
-                      <SelectItem value="billing">Billing</SelectItem>
-                      <SelectItem value="course">Course</SelectItem>
-                      <SelectItem value="account">Account</SelectItem>
-                      <SelectItem value="general">General</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Subject</Label>
-                <Input
-                  value={formData.subject}
-                  onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                  placeholder="Brief description of your issue"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Message</Label>
+            {/* Reply Input */}
+            {selectedTicket?.status !== 'closed' && (
+              <div className="border-t pt-4 space-y-3">
                 <Textarea
-                  value={formData.message}
-                  onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  placeholder="Provide detailed information about your issue..."
-                  rows={6}
-                  required
+                  placeholder="Type your reply..."
+                  value={replyMessage}
+                  onChange={(e) => setReplyMessage(e.target.value)}
+                  rows={3}
+                  className="resize-none"
                 />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      className="hidden"
+                      accept="image/*,video/*,.pdf,.doc,.docx"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Paperclip className="h-4 w-4 mr-2" />
+                      Attach
+                    </Button>
+                    {replyFile && (
+                      <div className="flex items-center gap-2 text-sm bg-muted px-3 py-1 rounded-md">
+                        <FileText className="h-4 w-4" />
+                        <span className="truncate max-w-[200px]">{replyFile.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-5 w-5 p-0"
+                          onClick={() => {
+                            setReplyFile(null);
+                            if (fileInputRef.current) fileInputRef.current.value = "";
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    onClick={handleReply}
+                    disabled={!replyMessage.trim() && !replyFile}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Reply
+                  </Button>
+                </div>
               </div>
-              
-              <Button type="submit" className="w-full">
-                Create Ticket
-              </Button>
-            </form>
+            )}
           </DialogContent>
         </Dialog>
       </div>
-
-      <Tabs defaultValue="open" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="open">
-            Open ({openTickets.length})
-          </TabsTrigger>
-          <TabsTrigger value="closed">
-            Closed ({closedTickets.length})
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="open" className="space-y-4">
-          {openTickets.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No open tickets</p>
-              </CardContent>
-            </Card>
-          ) : (
-            openTickets.map((ticket) => (
-              <Card key={ticket.id} className="cursor-pointer hover:bg-accent/50 transition-colors">
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className={getStatusColor(ticket.status)}>
-                        {getStatusIcon(ticket.status)}
-                        <span className="ml-1 capitalize">{ticket.status.replace('_', ' ')}</span>
-                      </Badge>
-                      <Badge variant="outline" className={getPriorityColor(ticket.priority)}>
-                        <span className="capitalize">{ticket.priority}</span>
-                      </Badge>
-                    </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" className="text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Ticket</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete this ticket? This action cannot be undone.
-                            All replies and attachments will be permanently removed.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteTicket(ticket.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                  <CardTitle 
-                    className="text-lg cursor-pointer hover:text-primary transition-colors"
-                    onClick={() => {
-                      setSelectedTicket(ticket);
-                      setIsDetailDialogOpen(true);
-                    }}
-                  >
-                    {ticket.subject}
-                  </CardTitle>
-                  <CardDescription>
-                    Created {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            ))
-          )}
-        </TabsContent>
-
-        <TabsContent value="closed" className="space-y-4">
-          {closedTickets.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <CheckCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No closed tickets</p>
-              </CardContent>
-            </Card>
-          ) : (
-            closedTickets.map((ticket) => (
-              <Card key={ticket.id} className="cursor-pointer hover:bg-accent/50 transition-colors opacity-75">
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className={getStatusColor(ticket.status)}>
-                        {getStatusIcon(ticket.status)}
-                        <span className="ml-1 capitalize">{ticket.status}</span>
-                      </Badge>
-                      <Badge variant="outline" className={getPriorityColor(ticket.priority)}>
-                        <span className="capitalize">{ticket.priority}</span>
-                      </Badge>
-                    </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" className="text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Ticket</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete this ticket? This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteTicket(ticket.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                  <CardTitle 
-                    className="text-lg cursor-pointer hover:text-primary transition-colors"
-                    onClick={() => {
-                      setSelectedTicket(ticket);
-                      setIsDetailDialogOpen(true);
-                    }}
-                  >
-                    {ticket.subject}
-                  </CardTitle>
-                  <CardDescription>
-                    Closed {formatDistanceToNow(new Date(ticket.updated_at), { addSuffix: true })}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            ))
-          )}
-        </TabsContent>
-      </Tabs>
-
-      {/* Ticket Detail Dialog */}
-      <Dialog open={isDetailDialogOpen} onOpenChange={(open) => {
-        setIsDetailDialogOpen(open);
-        if (!open) setSelectedTicket(null);
-      }}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle>{selectedTicket?.subject}</DialogTitle>
-              <div className="flex gap-2">
-                {selectedTicket?.status !== 'closed' && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Close Ticket
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Close Ticket</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to close this ticket? Closed tickets are read-only.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleCloseTicket(selectedTicket!.id)}>
-                          Close
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-destructive">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Ticket</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this ticket? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDeleteTicket(selectedTicket!.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
-            <DialogDescription>
-              <div className="flex gap-2 mt-2">
-                <Badge variant="outline" className={getStatusColor(selectedTicket?.status || '')}>
-                  {getStatusIcon(selectedTicket?.status || '')}
-                  <span className="ml-1 capitalize">{selectedTicket?.status.replace('_', ' ')}</span>
-                </Badge>
-                <Badge variant="outline" className={getPriorityColor(selectedTicket?.priority || '')}>
-                  <span className="capitalize">{selectedTicket?.priority}</span>
-                </Badge>
-                {selectedTicket?.category && (
-                  <Badge variant="outline">{selectedTicket.category}</Badge>
-                )}
-                {selectedTicket?.status === 'closed' && (
-                  <Badge variant="outline" className="bg-muted">
-                    Read-only (Closed)
-                  </Badge>
-                )}
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-
-          <ScrollArea className="flex-1 p-4 max-h-[60vh]">
-            <div className="space-y-4">
-              <Card className={selectedTicket?.status === 'closed' ? 'opacity-75' : ''}>
-                <CardHeader>
-                  <CardTitle className="text-base">Original Message</CardTitle>
-                  <CardDescription>
-                    {new Date(selectedTicket?.created_at || '').toLocaleString()}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="whitespace-pre-wrap">{selectedTicket?.message}</p>
-                </CardContent>
-              </Card>
-
-              {replies.map((reply) => (
-                <Card key={reply.id} className={reply.is_admin_reply ? "border-primary/50" : ""}>
-                  <CardHeader>
-                    <CardTitle className="text-sm">
-                      {reply.profiles?.full_name || "Unknown User"}
-                      {reply.is_admin_reply && (
-                        <Badge variant="outline" className="ml-2">Admin</Badge>
-                      )}
-                    </CardTitle>
-                    <CardDescription>
-                      {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="whitespace-pre-wrap">{reply.message}</p>
-                    {renderFileAttachment(reply)}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </ScrollArea>
-
-          {selectedTicket?.status !== 'closed' && (
-            <div className="border-t p-4">
-              <div className="space-y-3">
-                {replyFile && (
-                  <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
-                    <Paperclip className="h-4 w-4" />
-                    <span className="text-sm flex-1">{replyFile.name}</span>
-                    <span className="text-xs text-muted-foreground">{formatFileSize(replyFile.size)}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setReplyFile(null);
-                        if (fileInputRef.current) fileInputRef.current.value = "";
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-                <div className="flex gap-2">
-                  <Textarea
-                    value={replyMessage}
-                    onChange={(e) => setReplyMessage(e.target.value)}
-                    placeholder="Type your reply..."
-                    className="flex-1"
-                    rows={3}
-                  />
-                  <div className="flex flex-col gap-2">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      className="hidden"
-                      onChange={handleFileChange}
-                      accept="image/*,video/*,.pdf,.doc,.docx,.txt"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Paperclip className="h-4 w-4" />
-                    </Button>
-                    <Button onClick={handleReply} size="icon" disabled={!replyMessage.trim() && !replyFile}>
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          {selectedTicket?.status === 'closed' && (
-            <div className="border-t p-4 bg-muted/50">
-              <p className="text-sm text-center text-muted-foreground">
-                This ticket is closed. No further replies can be added.
-              </p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

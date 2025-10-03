@@ -15,7 +15,6 @@ import UploadLesson from "./pages/UploadLesson";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
-import Contact from "./pages/Contact";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
@@ -69,7 +68,11 @@ const App = () => (
                   </ProtectedRoute>
                 } />
                 <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
+                <Route path="/contact" element={
+                  <ProtectedRoute>
+                    <Support />
+                  </ProtectedRoute>
+                } />
                 <Route path="/support" element={
                   <ProtectedRoute>
                     <Support />
