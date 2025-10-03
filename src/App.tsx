@@ -42,11 +42,7 @@ const App = () => (
                   </ProtectedRoute>
                 } />
                 <Route path="/courses" element={<Courses />} />
-                <Route path="/courses/:id" element={
-                  <ProtectedRoute>
-                    <CourseDetail />
-                  </ProtectedRoute>
-                } />
+                <Route path="/courses/:id" element={<CourseDetail />} />
                 <Route path="/courses/:id/upload" element={
                   <ProtectedRoute requireRole="instructor">
                     <UploadLesson />
