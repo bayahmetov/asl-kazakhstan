@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { BookOpen, Clock, Users, Plus, Settings, Upload, Play } from 'lucide-react';
+import { BookOpen, Clock, Users, Plus, Settings, Upload, Play, Lock } from 'lucide-react';
 import DeleteCourseDialog from '@/components/DeleteCourseDialog';
 import DeleteLessonDialog from '@/components/DeleteLessonDialog';
 import CourseProgress from '@/components/CourseProgress';
@@ -377,7 +377,16 @@ export default function CourseDetail() {
               <div className="space-y-4">
                 {lessons.map((lesson, index) => (
                   <div key={lesson.id}>
-                    <div className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent/50 transition-colors">
+                    <div className={`relative flex items-center justify-between p-4 rounded-lg border transition-colors ${
+                      !auth?.user 
+                        ? 'opacity-60 cursor-not-allowed' 
+                        : 'hover:bg-accent/50'
+                    }`}>
+                      {!auth?.user && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-[2px] rounded-lg pointer-events-none z-10">
+                          <Lock className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                      )}
                       <div className="flex-1">
                         <h3 className="font-semibold mb-1">{lesson.title}</h3>
                         {lesson.description && (
@@ -395,8 +404,17 @@ export default function CourseDetail() {
                           size="sm"
                           variant={!auth?.user ? "outline" : "default"}
                         >
-                          <Play className="w-4 h-4 mr-2" />
-                          {!auth?.user ? 'Login to Watch' : t.playLesson}
+                          {!auth?.user ? (
+                            <>
+                              <Lock className="w-4 h-4 mr-2" />
+                              Login to Watch
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-4 h-4 mr-2" />
+                              {t.playLesson}
+                            </>
+                          )}
                         </Button>
                         {profile?.role === 'instructor' && canManageCourse && (
                           <DeleteLessonDialog
