@@ -53,11 +53,21 @@ export function AdminCourseAssignments() {
 
       if (coursesError) throw coursesError;
 
-      // Load all instructors
+      // Load all instructors from user_roles table
+      const { data: userRolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'instructor');
+
+      if (rolesError) throw rolesError;
+
+      const instructorIds = userRolesData?.map(r => r.user_id) || [];
+
+      // Get profiles for those instructor user_ids
       const { data: instructorsData, error: instructorsError } = await supabase
         .from('profiles')
         .select('id, full_name, email')
-        .eq('role', 'instructor')
+        .in('id', instructorIds)
         .order('full_name');
 
       if (instructorsError) throw instructorsError;
